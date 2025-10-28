@@ -1,0 +1,396 @@
+/* ========================================
+   FASTR CLEAN THEME - DISRUPTION MAPPING
+   ========================================
+   Clean, minimal design with FASTR teal #0f706d as accent
+*/
+
+:root {
+  --fastr-teal: #0f706d;
+  --fastr-teal-light: #1a8b86;
+  --text-dark: #2c3e50;
+  --text-medium: #7f8c8d;
+  --text-light: #95a5a6;
+  --bg-white: #ffffff;
+  --bg-light: #f8f9fa;
+  --bg-medium: #e9ecef;
+  --border-light: #dee2e6;
+}
+
+/* ========================================
+   BASIC RESETS
+   ======================================== */
+* {
+  box-sizing: border-box;
+}
+
+/* ========================================
+   HEADER - CLEAN WHITE WITH ALIGNED TEAL BORDER
+   ======================================== */
+.main-header {
+  background: var(--bg-white) !important;
+  border-bottom: 3px solid var(--fastr-teal) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.main-header .navbar {
+  background: var(--bg-white) !important;
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+}
+
+.main-header .logo {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
+}
+
+.main-header .navbar .nav > li > a {
+  color: var(--text-dark) !important;
+}
+
+/* ========================================
+   SIDEBAR - CLEAN GRAY
+   ======================================== */
+.main-sidebar {
+  background: var(--bg-light) !important;
+  border-right: 1px solid var(--border-light) !important;
+}
+
+.sidebar-menu > li > a {
+  color: var(--text-dark) !important;
+  padding: 12px 15px !important;
+  border-left: 3px solid transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-menu > li:hover > a {
+  background: var(--bg-white) !important;
+  border-left: 3px solid var(--fastr-teal-light) !important;
+}
+
+.sidebar-menu > li.active > a {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  font-weight: 600 !important;
+}
+
+.sidebar-menu > li > a > .fa {
+  color: var(--text-medium) !important;
+}
+
+.sidebar-menu > li.active > a > .fa {
+  color: var(--fastr-teal) !important;
+}
+
+/* ========================================
+   CONTENT AREA
+   ======================================== */
+.content-wrapper {
+  background: var(--bg-light) !important;
+}
+
+/* ========================================
+   BOXES - CLEAN WHITE WITH MINIMAL BORDERS
+   ======================================== */
+.box {
+  background: var(--bg-white) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  margin-bottom: 20px !important;
+}
+
+.box-header {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border-bottom: 2px solid var(--fastr-teal) !important;
+  padding: 15px !important;
+  font-weight: 600 !important;
+  border-radius: 6px 6px 0 0 !important;
+}
+
+.box-title {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+/* ========================================
+   RADIO BUTTONS - SIMPLE AND VISIBLE
+   ======================================== */
+input[type="radio"] {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 10px 0 0 !important;
+  opacity: 1 !important;
+  position: relative !important;
+  display: inline-block !important;
+  accent-color: var(--fastr-teal) !important;
+  cursor: pointer !important;
+}
+
+.radio {
+  margin-bottom: 10px !important;
+  display: block !important;
+}
+
+.radio label {
+  color: var(--text-dark) !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 8px 0 !important;
+}
+
+/* ========================================
+   BUTTONS - CONSISTENT FASTR TEAL THEME
+   ======================================== */
+.btn-primary,
+.btn-success {
+  background: var(--fastr-teal) !important;
+  border-color: var(--fastr-teal) !important;
+  color: var(--bg-white) !important;
+  font-weight: 500 !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+  background: var(--fastr-teal-light) !important;
+  border-color: var(--fastr-teal-light) !important;
+  color: var(--bg-white) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(15, 112, 109, 0.3) !important;
+}
+
+.btn-info {
+  background: var(--bg-medium) !important;
+  border-color: var(--bg-medium) !important;
+  color: var(--text-dark) !important;
+}
+
+.btn-warning {
+  background: var(--text-medium) !important;
+  border-color: var(--text-medium) !important;
+  color: var(--bg-white) !important;
+}
+
+/* ========================================
+   FORM CONTROLS
+   ======================================== */
+.form-control {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 4px !important;
+  color: var(--text-dark) !important;
+}
+
+.form-control:focus {
+  border-color: var(--fastr-teal) !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 112, 109, 0.25) !important;
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+body, .content-wrapper {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  color: var(--text-dark) !important;
+  line-height: 1.5 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
+}
+
+/* ========================================
+   TABLES
+   ======================================== */
+.table {
+  color: var(--text-dark) !important;
+}
+
+.table thead th {
+  background: var(--bg-light) !important;
+  color: var(--text-dark) !important;
+  border-bottom: 2px solid var(--border-light) !important;
+  font-weight: 600 !important;
+}
+
+/* ========================================
+   ALERTS - CONSISTENT FASTR THEME
+   ======================================== */
+.alert-info {
+  background: rgba(15, 112, 109, 0.1) !important;
+  border: 1px solid var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  color: var(--text-dark) !important;
+}
+
+.alert-success {
+  background: rgba(15, 112, 109, 0.1) !important;
+  border: 1px solid var(--fastr-teal) !important;
+  border-left: 4px solid var(--fastr-teal) !important;
+  color: var(--text-dark) !important;
+}
+
+.alert-warning {
+  background: rgba(243, 156, 18, 0.1) !important;
+  border: 1px solid #f39c12 !important;
+  border-left: 4px solid #f39c12 !important;
+  color: var(--text-dark) !important;
+}
+
+.alert-danger {
+  background: rgba(231, 76, 60, 0.1) !important;
+  border: 1px solid #e74c3c !important;
+  border-left: 4px solid #e74c3c !important;
+  color: var(--text-dark) !important;
+}
+
+/* ========================================
+   VALUE BOXES - DISRUPTION INDICATORS
+   ======================================== */
+.small-box {
+  border-radius: 6px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.small-box.bg-blue {
+  background: var(--fastr-teal) !important;
+}
+
+.small-box.bg-red {
+  background: #e74c3c !important;
+}
+
+.small-box.bg-yellow {
+  background: #f39c12 !important;
+}
+
+.small-box.bg-green {
+  background: #1a9641 !important;
+}
+
+/* ========================================
+   SKIN OVERRIDES
+   ======================================== */
+.skin-blue .main-header > .logo {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+}
+
+.skin-blue .main-header .navbar {
+  background: var(--bg-white) !important;
+}
+
+.skin-blue .main-sidebar {
+  background: var(--bg-light) !important;
+}
+
+.skin-blue .sidebar-menu > li > a {
+  color: var(--text-dark) !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a {
+  background: var(--bg-white) !important;
+  color: var(--fastr-teal) !important;
+}
+
+/* ========================================
+   PROGRESS INDICATORS & LOADING STATES
+   ======================================== */
+.progress {
+  background-color: var(--bg-medium) !important;
+  border-radius: 4px !important;
+  height: 8px !important;
+  margin: 10px 0 !important;
+}
+
+.progress-bar {
+  background-color: var(--fastr-teal) !important;
+  transition: width 0.3s ease !important;
+}
+
+.spinner-border,
+.fa-spin {
+  color: var(--fastr-teal) !important;
+}
+
+/* ========================================
+   SHINY NOTIFICATIONS
+   ======================================== */
+.shiny-notification {
+  border-left: 4px solid var(--fastr-teal) !important;
+  background-color: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+}
+
+.shiny-notification.shiny-notification-message {
+  background-color: rgba(15, 112, 109, 0.1) !important;
+}
+
+.shiny-notification.shiny-notification-warning {
+  background-color: rgba(243, 156, 18, 0.1) !important;
+  border-left-color: #f39c12 !important;
+}
+
+.shiny-notification.shiny-notification-error {
+  background-color: rgba(231, 76, 60, 0.1) !important;
+  border-left-color: #e74c3c !important;
+}
+
+/* ========================================
+   BOX COLLAPSE BUTTON - ENSURE VISIBILITY
+   ======================================== */
+.box-header .box-tools {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.box-header .btn-box-tool {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: var(--text-dark) !important;
+  padding: 5px !important;
+  font-size: 14px !important;
+}
+
+.box-header .btn-box-tool:hover {
+  color: var(--fastr-teal) !important;
+}
+
+/* ========================================
+   LEAFLET MAP CONTROLS
+   ======================================== */
+.leaflet-control-layers {
+  background: var(--bg-white) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.leaflet-bar a {
+  background: var(--bg-white) !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  color: var(--text-dark) !important;
+}
+
+.leaflet-bar a:hover {
+  background: var(--bg-light) !important;
+}

@@ -1,0 +1,37 @@
+# Git files
+.git
+.gitignore
+
+# RStudio files
+.Rproj.user
+*.Rproj
+.RData
+.Rhistory
+
+# Documentation included (documentation/ folder)
+# Old docs/ folder excluded if exists
+docs/
+
+# Archive folder
+archive/
+
+# Test and backup files
+test_*.R
+*_backup.R
+*.backup
+
+# Deployment files
+deploy.R
+DEPLOY.md
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# CSV data files (unless needed for deployment)
+*.csv
+
+# Environment files
+.Renviron

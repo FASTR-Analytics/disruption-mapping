@@ -1,0 +1,31 @@
+# R and RStudio files
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+
+# Shiny specific
+rsconnect/
+*.log
+
+# Environment and credentials
+.env
+.Renviron
+*.pem
+*.key
+
+# Database backups
+*.sql.backup
+backup_*.sql
+
+# Data files (optional - remove if you want to track them)
+# *.csv
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*~
+*.swp
+*.swo
