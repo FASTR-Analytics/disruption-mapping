@@ -15,6 +15,7 @@ library(tidyr)
 library(DT)
 library(ggplot2)
 library(htmlwidgets)
+library(rlang)
 
 # Required for professional map export
 if (!requireNamespace("ggspatial", quietly = TRUE)) {

@@ -30,7 +30,7 @@ RUN echo "options(repos = c(CRAN = 'https://packagemanager.posit.co/cran/__linux
 RUN R -e "install.packages(c('shinydashboard', 'shinyWidgets', 'DT'), Ncpus = 2)"
 
 # Install data manipulation packages
-RUN R -e "install.packages(c('tidyr'), Ncpus = 2)"
+RUN R -e "install.packages(c('tidyr', 'rlang'), Ncpus = 2)"
 
 # Install geospatial packages
 RUN R -e "install.packages(c('sf', 'leaflet'), Ncpus = 2)"
