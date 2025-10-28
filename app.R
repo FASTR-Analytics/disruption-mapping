@@ -258,8 +258,13 @@ server <- function(input, output, session) {
   observeEvent(input$disruption_file, {
     req(input$disruption_file)
 
+    # Show file size to user
+    file_size_mb <- round(input$disruption_file$size / 1024^2, 2)
+    showNotification(paste0("Uploading file (", file_size_mb, " MB)..."),
+                    type = "message", duration = 3)
+
     tryCatch({
-      withProgress(message = 'Loading CSV file...', value = 0, {
+      withProgress(message = paste0('Loading CSV file (', file_size_mb, ' MB)...'), value = 0, {
         incProgress(0.3, detail = "Reading file...")
         result <- load_disruption_data(input$disruption_file$datapath)
         rv$disruption_data <- result$data
@@ -276,26 +281,37 @@ server <- function(input, output, session) {
                          choices = years,
                          selected = max(years))
 
-        # Update indicator choices
-        indicators <- rv$disruption_data %>%
-          distinct(indicator_common_id) %>%
-          left_join(current_indicator_labels(), by = c("indicator_common_id" = "indicator_id")) %>%
-          arrange(indicator_name)
+        incProgress(0.2, detail = "Loading indicators...")
 
-        indicator_choices <- setNames(indicators$indicator_common_id,
-                                     ifelse(is.na(indicators$indicator_name),
-                                           indicators$indicator_common_id,
-                                           indicators$indicator_name))
+        # Update indicator choices - optimized with data.table for speed
+        unique_indicators <- unique(rv$disruption_data$indicator_common_id)
+        labels_df <- current_indicator_labels()
+
+        # Fast merge using data.table operations
+        indicators_dt <- data.table(indicator_common_id = unique_indicators)
+        labels_dt <- as.data.table(labels_df)
+        setkey(indicators_dt, indicator_common_id)
+        setkey(labels_dt, indicator_id)
+
+        merged <- labels_dt[indicators_dt, on = .(indicator_id = indicator_common_id)]
+        merged <- merged[order(indicator_name)]
+
+        indicator_choices <- setNames(
+          merged$indicator_id,
+          ifelse(is.na(merged$indicator_name), merged$indicator_id, merged$indicator_name)
+        )
 
         updateSelectInput(session, "indicator",
                          choices = indicator_choices,
                          selected = indicator_choices[1])
 
-        incProgress(0.4, detail = "Complete!")
+        incProgress(0.2, detail = "Complete!")
       })
 
       level_name <- if(result$detected_level == "2") "Admin Level 2" else "Admin Level 3"
-      showNotification(paste("Disruption data loaded successfully (", level_name, ")"), type = "message")
+      row_count <- format(nrow(rv$disruption_data), big.mark = ",")
+      showNotification(paste0("Disruption data loaded successfully (", level_name, ", ", row_count, " rows)"),
+                      type = "message", duration = 5)
 
     }, error = function(e) {
       showNotification(paste("Error loading disruption data:", e$message), type = "error")
