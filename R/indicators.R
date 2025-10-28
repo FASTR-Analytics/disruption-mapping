@@ -94,16 +94,16 @@ indicator_labels <- data.frame(
 )
 
 # Define all category levels
-all_categories <- c("Disruption >10%", "Disruption 5-10%", "Stable",
-                    "Surplus 5-10%", "Surplus >10%", "Insufficient data")
+all_categories <- c("Disruption >10%", "Disruption 3-10%", "Stable",
+                    "Surplus 3-10%", "Surplus >10%", "Insufficient data")
 
 # Define color palette for disruption categories
 # RED (disruption) -> YELLOW (stable) -> GREEN (surplus)
 category_colors <- c(
   "Disruption >10%" = "#b2182b",    # Dark red (severe disruption)
-  "Disruption 5-10%" = "#ef8a62",   # Light red (moderate disruption)
+  "Disruption 3-10%" = "#ef8a62",   # Light red (moderate disruption)
   "Stable" = "#ffffcc",             # Light yellow (stable ±3%)
-  "Surplus 5-10%" = "#a1d99b",      # Light green (moderate surplus)
+  "Surplus 3-10%" = "#a1d99b",      # Light green (moderate surplus)
   "Surplus >10%" = "#238b45",       # Dark green (strong surplus)
   "Insufficient data" = "#999999"   # Gray
 )

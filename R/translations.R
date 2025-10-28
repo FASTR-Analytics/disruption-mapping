@@ -66,9 +66,9 @@ ui_translations <- list(
 
     # Categories
     cat_disruption_high = "Disruption >10%",
-    cat_disruption_med = "Disruption 5-10%",
+    cat_disruption_med = "Disruption 3-10%",
     cat_stable = "Stable",
-    cat_surplus_med = "Surplus 5-10%",
+    cat_surplus_med = "Surplus 3-10%",
     cat_surplus_high = "Surplus >10%",
     cat_insufficient = "Insufficient data",
 
@@ -141,9 +141,9 @@ ui_translations <- list(
 
     # Categories
     cat_disruption_high = "Perturbation >10%",
-    cat_disruption_med = "Perturbation 5-10%",
+    cat_disruption_med = "Perturbation 3-10%",
     cat_stable = "Stable",
-    cat_surplus_med = "Surplus 5-10%",
+    cat_surplus_med = "Surplus 3-10%",
     cat_surplus_high = "Surplus >10%",
     cat_insufficient = "Données Insuffisantes",
 

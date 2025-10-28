@@ -429,17 +429,17 @@ server <- function(input, output, session) {
         mutate(
           category = case_when(
             category == "Disruption >10%" ~ "Perturbation >10%",
-            category == "Disruption 5-10%" ~ "Perturbation 5-10%",
+            category == "Disruption 3-10%" ~ "Perturbation 3-10%",
             category == "Stable" ~ "Stable",
-            category == "Surplus 5-10%" ~ "Surplus 5-10%",
+            category == "Surplus 3-10%" ~ "Surplus 3-10%",
             category == "Surplus >10%" ~ "Surplus >10%",
             category == "Insufficient data" ~ "Données Insuffisantes",
             TRUE ~ as.character(category)
           )
         ) %>%
         mutate(category = factor(category, levels = c(
-          "Perturbation >10%", "Perturbation 5-10%", "Stable",
-          "Surplus 5-10%", "Surplus >10%", "Données Insuffisantes"
+          "Perturbation >10%", "Perturbation 3-10%", "Stable",
+          "Surplus 3-10%", "Surplus >10%", "Données Insuffisantes"
         )))
     }
 
@@ -481,9 +481,9 @@ server <- function(input, output, session) {
         mutate(
           category = case_when(
             category == "Disruption >10%" ~ "Perturbation >10%",
-            category == "Disruption 5-10%" ~ "Perturbation 5-10%",
+            category == "Disruption 3-10%" ~ "Perturbation 3-10%",
             category == "Stable" ~ "Stable",
-            category == "Surplus 5-10%" ~ "Surplus 5-10%",
+            category == "Surplus 3-10%" ~ "Surplus 3-10%",
             category == "Surplus >10%" ~ "Surplus >10%",
             category == "Insufficient data" ~ "Données Insuffisantes",
             TRUE ~ as.character(category)
@@ -511,8 +511,8 @@ server <- function(input, output, session) {
         tr()("col_category"),
         backgroundColor = styleEqual(
           if (current_lang == "fr") {
-            c("Perturbation >10%", "Perturbation 5-10%", "Stable",
-              "Surplus 5-10%", "Surplus >10%", "Données Insuffisantes")
+            c("Perturbation >10%", "Perturbation 3-10%", "Stable",
+              "Surplus 3-10%", "Surplus >10%", "Données Insuffisantes")
           } else {
             all_categories
           },
@@ -520,8 +520,8 @@ server <- function(input, output, session) {
         ),
         color = styleEqual(
           if (current_lang == "fr") {
-            c("Perturbation >10%", "Perturbation 5-10%", "Stable",
-              "Surplus 5-10%", "Surplus >10%", "Données Insuffisantes")
+            c("Perturbation >10%", "Perturbation 3-10%", "Stable",
+              "Surplus 3-10%", "Surplus >10%", "Données Insuffisantes")
           } else {
             all_categories
           },
