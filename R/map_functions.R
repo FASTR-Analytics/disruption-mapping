@@ -23,9 +23,14 @@ load_geojson_boundaries <- function(country_code, admin_level) {
 
 # Create continuous color palette (matching PNG scale -50 to +50)
 # Gradient: DARK RED → RED → YELLOW → GREEN → DARK GREEN
+# Uses all 13 colors from categorical palette for smooth transitions
 create_continuous_palette <- function() {
   colorNumeric(
-    palette = colorRampPalette(c("#67001f", "#d6604d", "#f4a582", "#ffffcc", "#a1d99b", "#74c476", "#006d2c"))(100),
+    palette = colorRampPalette(c(
+      "#67001f", "#b2182b", "#d6604d", "#f4a582", "#fddbc7", "#fee5d9",  # 6 reds (dark→light)
+      "#ffffcc",                                                          # 1 yellow (stable)
+      "#e5f5e0", "#c7e9c0", "#a1d99b", "#74c476", "#41ab5d", "#006d2c"   # 6 greens (light→dark)
+    ))(100),
     domain = c(-50, 50),
     na.color = "#999999"
   )
