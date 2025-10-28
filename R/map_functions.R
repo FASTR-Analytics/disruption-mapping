@@ -259,7 +259,7 @@ save_map_png <- function(map_data, filename,
       title = title_text,
       subtitle = subtitle_text,
       caption = paste(
-        "Red = disruption (below expected), Grey = stable, Green = surplus (above expected).",
+        "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected).",
         "\nValues capped at ±50%. Diagonal stripes = insufficient data."
       )
     ) +

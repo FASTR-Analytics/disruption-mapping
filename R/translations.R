@@ -155,8 +155,8 @@ ui_translations <- list(
   )
 )
 
-# Helper function to get translation
-t <- function(key, lang = "en") {
+# Helper function to get translation without masking base::t()
+translate_text <- function(key, lang = "en") {
   ui_translations[[lang]][[key]] %||% key
 }
 

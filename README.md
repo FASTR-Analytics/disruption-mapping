@@ -69,10 +69,10 @@ SAM treatment, vitamin A, diarrhoea, GBV, outpatient/inpatient visits
 |-------|----------|---------|
 | 🔴 Dark Red | Disruption >10% | Services significantly below expected |
 | 🟠 Orange | Disruption 5-10% | Moderate disruption |
-| ⚪ Grey | Stable | Within ±5% of expected |
+| 🟡 Light Yellow | Stable | Within ±5% of expected |
 | 🟢 Light Green | Surplus 5-10% | Moderate increase |
 | 🟩 Dark Green | Surplus >10% | Services significantly above expected |
-| ⬜ White | Insufficient data | Not enough data to calculate |
+| ⬜ Light Gray | Insufficient data | Not enough data to calculate |
 
 ## 📂 Data Format
 

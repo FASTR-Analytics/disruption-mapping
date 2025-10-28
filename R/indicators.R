@@ -121,3 +121,23 @@ category_colors <- c(
   "Surplus >20%" = "#006d2c",       # Very dark green (strong surplus)
   "Insufficient data" = "#999999"   # Gray
 )
+
+# Simplified heatmap categories (aggregated bands)
+heatmap_categories <- c(
+  "Disruption >10%",
+  "Disruption 5-10%",
+  "Stable",
+  "Surplus 5-10%",
+  "Surplus >10%",
+  "Insufficient data"
+)
+
+# Color palette aligned with simplified heatmap categories
+heatmap_colors <- c(
+  "Disruption >10%" = "#d7191c",
+  "Disruption 5-10%" = "#fdae61",
+  "Stable" = "#ffffcc",
+  "Surplus 5-10%" = "#a6d96a",
+  "Surplus >10%" = "#1a9641",
+  "Insufficient data" = "#f0f0f0"
+)

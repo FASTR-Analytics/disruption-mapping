@@ -54,7 +54,7 @@ Your app now creates **publication-ready static maps** that look like profession
 - Title: "Percent change (actual vs expected)"
 
 **Caption**:
-"Red = disruption (below expected), Grey = stable, Green = surplus (above expected).
+"Red = disruption (below expected), Yellow = stable, Green = surplus (above expected).
 Values capped at ±50%. Diagonal stripes = insufficient data."
 
 ---

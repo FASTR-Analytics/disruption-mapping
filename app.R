@@ -29,9 +29,12 @@ library(ggspatial)
 # Optional: diagonal stripe patterns on insufficient data
 pattern_available <- FALSE
 tryCatch({
-  library(ggpattern)
-  library(leaflet.extras2)
-  pattern_available <- TRUE
+  if (requireNamespace("ggpattern", quietly = TRUE) &&
+      requireNamespace("leaflet.extras2", quietly = TRUE)) {
+    pattern_available <- TRUE
+  } else {
+    stop("Pattern packages missing")
+  }
 }, error = function(e) {
   message("Pattern packages not available - using solid colors for insufficient data")
 })
@@ -116,7 +119,25 @@ ui <- dashboardPage(
     # Load external CSS and JS
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
-      tags$script(src = "language.js")
+      tags$script(src = "language.js"),
+      tags$script(HTML("
+        document.addEventListener('DOMContentLoaded', function() {
+          var menu = document.querySelector('.sidebar-menu');
+          if (menu) {
+            var firstItem = menu.querySelector('li');
+            if (firstItem && !firstItem.classList.contains('active')) {
+              firstItem.classList.add('active');
+            }
+          }
+          var tracker = document.querySelector('.sidebarMenuSelectedTabItem');
+          if (tracker && (!tracker.dataset.value || tracker.dataset.value === 'null')) {
+            tracker.dataset.value = 'map';
+          }
+          if (window.Shiny && typeof Shiny.setInputValue === 'function') {
+            Shiny.setInputValue('app_tabs', 'map', {priority: 'event'});
+          }
+        });
+      "))
     ),
 
     # All tabs from ui_components.R
@@ -183,7 +204,7 @@ server <- function(input, output, session) {
   # Get current language translations
   tr <- reactive({
     lang <- rv$lang
-    function(key) t(key, lang)
+    function(key) translate_text(key, lang)
   })
 
   # Get current indicator labels based on language
@@ -632,7 +653,7 @@ server <- function(input, output, session) {
       ) %>%
       mutate(
         percent_change = (total_actual - total_expected) / total_expected * 100,
-        category = calculate_category(percent_change, total_expected)
+        category = calculate_heatmap_category(percent_change, total_expected)
       )
 
     names(heatmap_data)[1] <- "admin_area"
@@ -640,13 +661,17 @@ server <- function(input, output, session) {
     # Join with indicator labels and use indicator_common_id as fallback
     heatmap_data <- heatmap_data %>%
       left_join(current_indicator_labels(), by = c("indicator_common_id" = "indicator_id")) %>%
-      mutate(display_name = coalesce(indicator_name, indicator_common_id))
+      mutate(
+        display_name = coalesce(indicator_name, indicator_common_id),
+        category = factor(category, levels = heatmap_categories)
+      )
 
     # Create heatmap
     ggplot(heatmap_data, aes(x = display_name, y = admin_area, fill = category)) +
       geom_tile(color = "white", size = 0.5) +
       scale_fill_manual(
-        values = category_colors,
+        values = heatmap_colors,
+        limits = heatmap_categories,
         name = "Service volumes vs expected",
         drop = FALSE
       ) +
@@ -732,6 +757,7 @@ server <- function(input, output, session) {
         geom_tile(color = "white", size = 0.5) +
         scale_fill_manual(
           values = heatmap_colors,
+          limits = heatmap_categories,
           drop = FALSE
         ) +
         theme_minimal() +

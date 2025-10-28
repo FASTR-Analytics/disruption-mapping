@@ -2,6 +2,15 @@
 # UI COMPONENT FUNCTIONS
 # ========================================
 
+# Compatibility wrapper for shinydashboard menu items
+dash_menu_item <- function(...) {
+  if (exists("context_menuItem", asNamespace("shinydashboard"), inherits = FALSE)) {
+    get("context_menuItem", asNamespace("shinydashboard"))(...)
+  } else {
+    shinydashboard::menuItem(...)
+  }
+}
+
 # Create dashboard header
 create_app_header <- function() {
   dashboardHeader(
@@ -33,17 +42,19 @@ create_app_header <- function() {
 create_app_sidebar <- function() {
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Disruption Map", tabName = "map", icon = icon("map")),
-      menuItem("Heatmap", tabName = "heatmap", icon = icon("th")),
-      menuItem("Summary Statistics", tabName = "stats", icon = icon("chart-bar")),
-      menuItem("About", tabName = "about", icon = icon("info-circle"))
+      id = "app_tabs",
+      selected = "map",
+      dash_menu_item("Disruption Map", tabName = "map", icon = icon("map")),
+      dash_menu_item("Heatmap", tabName = "heatmap", icon = icon("th")),
+      dash_menu_item("Summary Statistics", tabName = "stats", icon = icon("chart-bar")),
+      dash_menu_item("About", tabName = "about", icon = icon("info-circle"))
     )
   )
 }
 
 # Create map tab
 create_map_tab <- function(db_connected = FALSE) {
-  tabItem(
+  tab <- tabItem(
     tabName = "map",
     fluidRow(
       box(
@@ -162,6 +173,14 @@ create_map_tab <- function(db_connected = FALSE) {
       valueBoxOutput("surplus_count", width = 3)
     )
   )
+
+  # Ensure default tab is visible on initial load
+  if (is.null(tab$attribs$class)) {
+    tab$attribs$class <- "active"
+  } else if (!grepl("\\bactive\\b", tab$attribs$class)) {
+    tab$attribs$class <- paste(tab$attribs$class, "active")
+  }
+  tab
 }
 
 # Create statistics tab
@@ -270,7 +289,7 @@ create_heatmap_tab <- function() {
             ),
             tags$div(
               style = "display: flex; align-items: center; gap: 8px;",
-              tags$div(style = "width: 30px; height: 20px; background: #cccccc; border: 1px solid #ccc;"),
+              tags$div(style = "width: 30px; height: 20px; background: #ffffcc; border: 1px solid #ccc;"),
               tags$span("Stable")
             ),
             tags$div(
@@ -285,7 +304,7 @@ create_heatmap_tab <- function() {
             ),
             tags$div(
               style = "display: flex; align-items: center; gap: 8px;",
-              tags$div(style = "width: 30px; height: 20px; background: white; border: 1px solid #ccc;"),
+              tags$div(style = "width: 30px; height: 20px; background: #f0f0f0; border: 1px solid #ccc;"),
               tags$span("Insufficient data")
             )
           )

@@ -30,10 +30,10 @@ District C        🔴    🔴     🟢       🟡
 ### Color Legend:
 - 🔴 **Red**: Disruption >10% (services significantly below expected)
 - 🟠 **Orange**: Disruption 5-10% (moderate disruption)
-- ⚪ **Grey**: Stable (within ±5% of expected)
+- 🟡 **Light Yellow**: Stable (within ±5% of expected)
 - 🟢 **Light Green**: Surplus 5-10% (moderate increase)
 - 🟩 **Dark Green**: Surplus >10% (services significantly above expected)
-- ⬜ **White**: Insufficient data
+- ⬜ **Light Gray**: Insufficient data
 
 ---
 
