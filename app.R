@@ -26,6 +26,10 @@ if (!requireNamespace("ggspatial", quietly = TRUE)) {
 
 library(ggspatial)
 
+# Required for diagonal stripe patterns on insufficient data
+library(ggpattern)
+library(leaflet.extras2)
+
 # Database libraries (optional - app works without them)
 db_available <- FALSE
 tryCatch({

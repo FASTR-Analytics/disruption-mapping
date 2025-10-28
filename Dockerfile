@@ -41,6 +41,9 @@ RUN R -e "install.packages(c('ggplot2', 'scales'), Ncpus = 2)"
 # Install htmlwidgets and ggspatial for professional map export
 RUN R -e "install.packages(c('htmlwidgets', 'ggspatial'), Ncpus = 2)"
 
+# Install pattern packages for diagonal stripes on insufficient data
+RUN R -e "install.packages(c('ggpattern', 'leaflet.extras2'), Ncpus = 2)"
+
 # Install database packages (optional but recommended)
 RUN R -e "install.packages(c('DBI', 'RPostgres'), Ncpus = 2)"
 
