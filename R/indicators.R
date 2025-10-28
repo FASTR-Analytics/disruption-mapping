@@ -93,17 +93,31 @@ indicator_labels <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# Define all category levels
-all_categories <- c("Disruption >10%", "Disruption 3-10%", "Stable",
-                    "Surplus 3-10%", "Surplus >10%", "Insufficient data")
+# Define all category levels (ordered from most disrupted to most surplus)
+all_categories <- c(
+  "Disruption >20%", "Disruption 15-20%", "Disruption 10-15%",
+  "Disruption 7-10%", "Disruption 5-7%", "Disruption 3-5%",
+  "Stable",
+  "Surplus 3-5%", "Surplus 5-7%", "Surplus 7-10%",
+  "Surplus 10-15%", "Surplus 15-20%", "Surplus >20%",
+  "Insufficient data"
+)
 
 # Define color palette for disruption categories
-# RED (disruption) -> YELLOW (stable) -> GREEN (surplus)
+# Gradient: DARK RED → RED → YELLOW → GREEN → DARK GREEN
 category_colors <- c(
-  "Disruption >10%" = "#b2182b",    # Dark red (severe disruption)
-  "Disruption 3-10%" = "#ef8a62",   # Light red (moderate disruption)
+  "Disruption >20%" = "#67001f",    # Very dark red (severe disruption)
+  "Disruption 15-20%" = "#b2182b",  # Dark red
+  "Disruption 10-15%" = "#d6604d",  # Medium-dark red
+  "Disruption 7-10%" = "#f4a582",   # Medium red
+  "Disruption 5-7%" = "#fddbc7",    # Light-medium red
+  "Disruption 3-5%" = "#fee5d9",    # Light red
   "Stable" = "#ffffcc",             # Light yellow (stable ±3%)
-  "Surplus 3-10%" = "#a1d99b",      # Light green (moderate surplus)
-  "Surplus >10%" = "#238b45",       # Dark green (strong surplus)
+  "Surplus 3-5%" = "#e5f5e0",       # Light green
+  "Surplus 5-7%" = "#c7e9c0",       # Light-medium green
+  "Surplus 7-10%" = "#a1d99b",      # Medium green
+  "Surplus 10-15%" = "#74c476",     # Medium-dark green
+  "Surplus 15-20%" = "#41ab5d",     # Dark green
+  "Surplus >20%" = "#006d2c",       # Very dark green (strong surplus)
   "Insufficient data" = "#999999"   # Gray
 )

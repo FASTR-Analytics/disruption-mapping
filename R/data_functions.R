@@ -15,11 +15,22 @@ get_available_countries <- function() {
 calculate_category <- function(percent_change, total_expected) {
   case_when(
     total_expected == 0 | is.na(total_expected) | is.infinite(percent_change) ~ "Insufficient data",
-    percent_change >= 10 ~ "Surplus >10%",
-    percent_change >= 3 & percent_change < 10 ~ "Surplus 3-10%",
+    # Surplus categories (positive)
+    percent_change >= 20 ~ "Surplus >20%",
+    percent_change >= 15 & percent_change < 20 ~ "Surplus 15-20%",
+    percent_change >= 10 & percent_change < 15 ~ "Surplus 10-15%",
+    percent_change >= 7 & percent_change < 10 ~ "Surplus 7-10%",
+    percent_change >= 5 & percent_change < 7 ~ "Surplus 5-7%",
+    percent_change >= 3 & percent_change < 5 ~ "Surplus 3-5%",
+    # Stable
     percent_change > -3 & percent_change < 3 ~ "Stable",
-    percent_change > -10 & percent_change <= -3 ~ "Disruption 3-10%",
-    percent_change <= -10 ~ "Disruption >10%",
+    # Disruption categories (negative)
+    percent_change > -5 & percent_change <= -3 ~ "Disruption 3-5%",
+    percent_change > -7 & percent_change <= -5 ~ "Disruption 5-7%",
+    percent_change > -10 & percent_change <= -7 ~ "Disruption 7-10%",
+    percent_change > -15 & percent_change <= -10 ~ "Disruption 10-15%",
+    percent_change > -20 & percent_change <= -15 ~ "Disruption 15-20%",
+    percent_change <= -20 ~ "Disruption >20%",
     TRUE ~ "Stable"
   )
 }

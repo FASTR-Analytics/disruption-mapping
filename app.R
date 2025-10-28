@@ -428,18 +428,30 @@ server <- function(input, output, session) {
       data <- data %>%
         mutate(
           category = case_when(
-            category == "Disruption >10%" ~ "Perturbation >10%",
-            category == "Disruption 3-10%" ~ "Perturbation 3-10%",
+            category == "Disruption >20%" ~ "Perturbation >20%",
+            category == "Disruption 15-20%" ~ "Perturbation 15-20%",
+            category == "Disruption 10-15%" ~ "Perturbation 10-15%",
+            category == "Disruption 7-10%" ~ "Perturbation 7-10%",
+            category == "Disruption 5-7%" ~ "Perturbation 5-7%",
+            category == "Disruption 3-5%" ~ "Perturbation 3-5%",
             category == "Stable" ~ "Stable",
-            category == "Surplus 3-10%" ~ "Surplus 3-10%",
-            category == "Surplus >10%" ~ "Surplus >10%",
+            category == "Surplus 3-5%" ~ "Surplus 3-5%",
+            category == "Surplus 5-7%" ~ "Surplus 5-7%",
+            category == "Surplus 7-10%" ~ "Surplus 7-10%",
+            category == "Surplus 10-15%" ~ "Surplus 10-15%",
+            category == "Surplus 15-20%" ~ "Surplus 15-20%",
+            category == "Surplus >20%" ~ "Surplus >20%",
             category == "Insufficient data" ~ "Données Insuffisantes",
             TRUE ~ as.character(category)
           )
         ) %>%
         mutate(category = factor(category, levels = c(
-          "Perturbation >10%", "Perturbation 3-10%", "Stable",
-          "Surplus 3-10%", "Surplus >10%", "Données Insuffisantes"
+          "Perturbation >20%", "Perturbation 15-20%", "Perturbation 10-15%",
+          "Perturbation 7-10%", "Perturbation 5-7%", "Perturbation 3-5%",
+          "Stable",
+          "Surplus 3-5%", "Surplus 5-7%", "Surplus 7-10%",
+          "Surplus 10-15%", "Surplus 15-20%", "Surplus >20%",
+          "Données Insuffisantes"
         )))
     }
 
@@ -480,11 +492,19 @@ server <- function(input, output, session) {
       summary_data <- summary_data %>%
         mutate(
           category = case_when(
-            category == "Disruption >10%" ~ "Perturbation >10%",
-            category == "Disruption 3-10%" ~ "Perturbation 3-10%",
+            category == "Disruption >20%" ~ "Perturbation >20%",
+            category == "Disruption 15-20%" ~ "Perturbation 15-20%",
+            category == "Disruption 10-15%" ~ "Perturbation 10-15%",
+            category == "Disruption 7-10%" ~ "Perturbation 7-10%",
+            category == "Disruption 5-7%" ~ "Perturbation 5-7%",
+            category == "Disruption 3-5%" ~ "Perturbation 3-5%",
             category == "Stable" ~ "Stable",
-            category == "Surplus 3-10%" ~ "Surplus 3-10%",
-            category == "Surplus >10%" ~ "Surplus >10%",
+            category == "Surplus 3-5%" ~ "Surplus 3-5%",
+            category == "Surplus 5-7%" ~ "Surplus 5-7%",
+            category == "Surplus 7-10%" ~ "Surplus 7-10%",
+            category == "Surplus 10-15%" ~ "Surplus 10-15%",
+            category == "Surplus 15-20%" ~ "Surplus 15-20%",
+            category == "Surplus >20%" ~ "Surplus >20%",
             category == "Insufficient data" ~ "Données Insuffisantes",
             TRUE ~ as.character(category)
           )
@@ -511,8 +531,12 @@ server <- function(input, output, session) {
         tr()("col_category"),
         backgroundColor = styleEqual(
           if (current_lang == "fr") {
-            c("Perturbation >10%", "Perturbation 3-10%", "Stable",
-              "Surplus 3-10%", "Surplus >10%", "Données Insuffisantes")
+            c("Perturbation >20%", "Perturbation 15-20%", "Perturbation 10-15%",
+              "Perturbation 7-10%", "Perturbation 5-7%", "Perturbation 3-5%",
+              "Stable",
+              "Surplus 3-5%", "Surplus 5-7%", "Surplus 7-10%",
+              "Surplus 10-15%", "Surplus 15-20%", "Surplus >20%",
+              "Données Insuffisantes")
           } else {
             all_categories
           },
@@ -520,12 +544,16 @@ server <- function(input, output, session) {
         ),
         color = styleEqual(
           if (current_lang == "fr") {
-            c("Perturbation >10%", "Perturbation 3-10%", "Stable",
-              "Surplus 3-10%", "Surplus >10%", "Données Insuffisantes")
+            c("Perturbation >20%", "Perturbation 15-20%", "Perturbation 10-15%",
+              "Perturbation 7-10%", "Perturbation 5-7%", "Perturbation 3-5%",
+              "Stable",
+              "Surplus 3-5%", "Surplus 5-7%", "Surplus 7-10%",
+              "Surplus 10-15%", "Surplus 15-20%", "Surplus >20%",
+              "Données Insuffisantes")
           } else {
             all_categories
           },
-          c(rep("white", 2), "black", rep("white", 2), "white")
+          c(rep("white", 6), "black", rep("white", 6), "white")
         )
       )
   })

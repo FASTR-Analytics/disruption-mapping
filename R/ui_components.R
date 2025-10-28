@@ -326,11 +326,19 @@ create_about_tab <- function() {
 
         h4("Disruption Categories (when using categorical scale)"),
         tags$ul(
-          tags$li(tags$b("Disruption >10%:"), " Actual services are 10% or more below expected"),
-          tags$li(tags$b("Disruption 3-10%:"), " Actual services are 3-10% below expected"),
+          tags$li(tags$b("Disruption >20%:"), " Actual services are 20% or more below expected"),
+          tags$li(tags$b("Disruption 15-20%:"), " Actual services are 15-20% below expected"),
+          tags$li(tags$b("Disruption 10-15%:"), " Actual services are 10-15% below expected"),
+          tags$li(tags$b("Disruption 7-10%:"), " Actual services are 7-10% below expected"),
+          tags$li(tags$b("Disruption 5-7%:"), " Actual services are 5-7% below expected"),
+          tags$li(tags$b("Disruption 3-5%:"), " Actual services are 3-5% below expected"),
           tags$li(tags$b("Stable:"), " Actual services are within ±3% of expected"),
-          tags$li(tags$b("Surplus 3-10%:"), " Actual services are 3-10% above expected"),
-          tags$li(tags$b("Surplus >10%:"), " Actual services are 10% or more above expected"),
+          tags$li(tags$b("Surplus 3-5%:"), " Actual services are 3-5% above expected"),
+          tags$li(tags$b("Surplus 5-7%:"), " Actual services are 5-7% above expected"),
+          tags$li(tags$b("Surplus 7-10%:"), " Actual services are 7-10% above expected"),
+          tags$li(tags$b("Surplus 10-15%:"), " Actual services are 10-15% above expected"),
+          tags$li(tags$b("Surplus 15-20%:"), " Actual services are 15-20% above expected"),
+          tags$li(tags$b("Surplus >20%:"), " Actual services are 20% or more above expected"),
           tags$li(tags$b("Insufficient data:"), " Not enough data to calculate disruptions")
         ),
 
