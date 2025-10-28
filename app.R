@@ -16,6 +16,7 @@ library(DT)
 library(ggplot2)
 library(htmlwidgets)
 library(rlang)
+library(data.table)
 
 # Required for professional map export
 if (!requireNamespace("ggspatial", quietly = TRUE)) {
@@ -258,33 +259,40 @@ server <- function(input, output, session) {
     req(input$disruption_file)
 
     tryCatch({
-      result <- load_disruption_data(input$disruption_file$datapath)
-      rv$disruption_data <- result$data
-      rv$data_admin_level <- result$detected_level
+      withProgress(message = 'Loading CSV file...', value = 0, {
+        incProgress(0.3, detail = "Reading file...")
+        result <- load_disruption_data(input$disruption_file$datapath)
+        rv$disruption_data <- result$data
+        rv$data_admin_level <- result$detected_level
 
-      # Auto-update admin level selector to match the data
-      updateSelectInput(session, "admin_level", selected = result$detected_level)
+        incProgress(0.3, detail = "Processing data...")
 
-      # Update year choices
-      years <- get_years_from_data(rv$disruption_data)
-      updateSelectInput(session, "year",
-                       choices = years,
-                       selected = max(years))
+        # Auto-update admin level selector to match the data
+        updateSelectInput(session, "admin_level", selected = result$detected_level)
 
-      # Update indicator choices
-      indicators <- rv$disruption_data %>%
-        distinct(indicator_common_id) %>%
-        left_join(current_indicator_labels(), by = c("indicator_common_id" = "indicator_id")) %>%
-        arrange(indicator_name)
+        # Update year choices
+        years <- get_years_from_data(rv$disruption_data)
+        updateSelectInput(session, "year",
+                         choices = years,
+                         selected = max(years))
 
-      indicator_choices <- setNames(indicators$indicator_common_id,
-                                   ifelse(is.na(indicators$indicator_name),
-                                         indicators$indicator_common_id,
-                                         indicators$indicator_name))
+        # Update indicator choices
+        indicators <- rv$disruption_data %>%
+          distinct(indicator_common_id) %>%
+          left_join(current_indicator_labels(), by = c("indicator_common_id" = "indicator_id")) %>%
+          arrange(indicator_name)
 
-      updateSelectInput(session, "indicator",
-                       choices = indicator_choices,
-                       selected = indicator_choices[1])
+        indicator_choices <- setNames(indicators$indicator_common_id,
+                                     ifelse(is.na(indicators$indicator_name),
+                                           indicators$indicator_common_id,
+                                           indicators$indicator_name))
+
+        updateSelectInput(session, "indicator",
+                         choices = indicator_choices,
+                         selected = indicator_choices[1])
+
+        incProgress(0.4, detail = "Complete!")
+      })
 
       level_name <- if(result$detected_level == "2") "Admin Level 2" else "Admin Level 3"
       showNotification(paste("Disruption data loaded successfully (", level_name, ")"), type = "message")

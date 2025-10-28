@@ -87,7 +87,21 @@ create_map_tab <- function(db_connected = FALSE) {
             conditionalPanel(
               condition = "input.data_source == 'upload'",
               fileInput("disruption_file", "Upload Disruption CSV:",
-                       accept = c(".csv"))
+                       accept = c(".csv")),
+              helpText(
+                tags$div(
+                  style = "margin-top: -10px; padding: 8px; background: #f8f9fa; border-left: 3px solid #3c8dbc; font-size: 11px;",
+                  tags$p(style = "margin: 0 0 5px 0; font-weight: 600;", "Where to find your CSV:"),
+                  tags$ol(
+                    style = "margin: 5px 0 5px 0; padding-left: 18px;",
+                    tags$li("Go to your country instance"),
+                    tags$li("Navigate to: ", tags$strong("modules > M3 Service utilization > Files")),
+                    tags$li("Download: ", tags$code(style = "font-size: 10px;", "M3_disruption_analysis_admin_area_2.csv"), " or ", tags$code(style = "font-size: 10px;", "M3_disruption_analysis_admin_area_3.csv"))
+                  ),
+                  tags$p(style = "margin: 5px 0 0 0; font-size: 10px; color: #666; font-style: italic;",
+                         "Large files may take 10-30 seconds to process.")
+                )
+              )
             )
           ),
           column(3,

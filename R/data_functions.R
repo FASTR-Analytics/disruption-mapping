@@ -60,7 +60,7 @@ calculate_disruption_summary <- function(data, year_val, indicator_id, admin_lev
 # Load and validate disruption data from CSV
 load_disruption_data <- function(file_path) {
 
-  data <- read.csv(file_path, stringsAsFactors = FALSE)
+  data <- data.table::fread(file_path, data.table = FALSE)
 
   # Detect admin level from columns
   has_admin_2 <- "admin_area_2" %in% names(data)
