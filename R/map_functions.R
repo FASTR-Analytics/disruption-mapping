@@ -313,11 +313,11 @@ save_map_png <- function(map_data, filename,
           pattern_fill = "#cccccc",
           color = "white",
           size = 0.3
-        ) +
+        )
     } else {
       # Fallback to regular geom_sf if pattern not available
       p <- ggplot(data = map_data) +
-        geom_sf(aes(fill = category), color = "white", size = 0.3) +
+        geom_sf(aes(fill = category), color = "white", size = 0.3)
     }
     p <- p +
       scale_fill_manual(
