@@ -57,8 +57,8 @@ COPY .env /app/
 # Set working directory
 WORKDIR /app
 
-# Make port 3838 available
-EXPOSE 3838
+# Make port 7860 available (required by Hugging Face Spaces)
+EXPOSE 7860
 
-# Run app
-CMD ["R", "-e", "shiny::runApp(host='0.0.0.0', port=3838)"]
+# Run app on port 7860
+CMD ["R", "-e", "shiny::runApp(host='0.0.0.0', port=7860)"]
