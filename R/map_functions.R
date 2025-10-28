@@ -95,7 +95,7 @@ render_disruption_map <- function(map_data, color_scale = "continuous", show_lab
     addProviderTiles(providers$Esri.WorldTopoMap)
 
   # Add stripe pattern for insufficient data (categorical mode only)
-  if (!is.null(fill_pattern)) {
+  if (!is.null(fill_pattern) && exists("pattern_available") && pattern_available) {
     map <- map %>%
       leaflet.extras2::addPatterns(
         patternId = "stripe",
@@ -111,7 +111,7 @@ render_disruption_map <- function(map_data, color_scale = "continuous", show_lab
   map <- map %>%
     addPolygons(
       fillColor = fill_color,
-      fillPattern = fill_pattern,
+      fillPattern = if (exists("pattern_available") && pattern_available) fill_pattern else NULL,
       weight = 1,
       opacity = 1,
       color = "white",
@@ -300,19 +300,26 @@ save_map_png <- function(map_data, filename,
         color = "black"
       )
   } else {
-    # Categorical palette with diagonal stripes for insufficient data
-    p <- ggplot(data = map_data) +
-      ggpattern::geom_sf_pattern(
-        aes(fill = category,
-            pattern = ifelse(category == "Insufficient data", "stripe", "none"),
-            pattern_angle = ifelse(category == "Insufficient data", 45, 0),
-            pattern_density = ifelse(category == "Insufficient data", 0.1, 0),
-            pattern_spacing = ifelse(category == "Insufficient data", 0.02, 0)),
-        pattern_color = "#666666",
-        pattern_fill = "#cccccc",
-        color = "white",
-        size = 0.3
-      ) +
+    # Categorical palette with diagonal stripes for insufficient data (if available)
+    if (exists("pattern_available") && pattern_available) {
+      p <- ggplot(data = map_data) +
+        ggpattern::geom_sf_pattern(
+          aes(fill = category,
+              pattern = ifelse(category == "Insufficient data", "stripe", "none"),
+              pattern_angle = ifelse(category == "Insufficient data", 45, 0),
+              pattern_density = ifelse(category == "Insufficient data", 0.1, 0),
+              pattern_spacing = ifelse(category == "Insufficient data", 0.02, 0)),
+          pattern_color = "#666666",
+          pattern_fill = "#cccccc",
+          color = "white",
+          size = 0.3
+        ) +
+    } else {
+      # Fallback to regular geom_sf if pattern not available
+      p <- ggplot(data = map_data) +
+        geom_sf(aes(fill = category), color = "white", size = 0.3) +
+    }
+    p <- p +
       scale_fill_manual(
         values = category_colors,
         name = "Disruption Category",
