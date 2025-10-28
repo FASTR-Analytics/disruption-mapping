@@ -328,7 +328,7 @@ create_about_tab <- function() {
         tags$ul(
           tags$li(tags$b("Disruption >10%:"), " Actual services are 10% or more below expected"),
           tags$li(tags$b("Disruption 5-10%:"), " Actual services are 5-10% below expected"),
-          tags$li(tags$b("Stable:"), " Actual services are within ±5% of expected"),
+          tags$li(tags$b("Stable:"), " Actual services are within ±3% of expected"),
           tags$li(tags$b("Surplus 5-10%:"), " Actual services are 5-10% above expected"),
           tags$li(tags$b("Surplus >10%:"), " Actual services are 10% or more above expected"),
           tags$li(tags$b("Insufficient data:"), " Not enough data to calculate disruptions")

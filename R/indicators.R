@@ -98,11 +98,12 @@ all_categories <- c("Disruption >10%", "Disruption 5-10%", "Stable",
                     "Surplus 5-10%", "Surplus >10%", "Insufficient data")
 
 # Define color palette for disruption categories
+# RED (disruption) -> YELLOW (stable) -> GREEN (surplus)
 category_colors <- c(
-  "Disruption >10%" = "#d7191c",
-  "Disruption 5-10%" = "#fdae61",
-  "Stable" = "#ffffbf",
-  "Surplus 5-10%" = "#a6d96a",
-  "Surplus >10%" = "#1a9641",
-  "Insufficient data" = "#999999"
+  "Disruption >10%" = "#b2182b",    # Dark red (severe disruption)
+  "Disruption 5-10%" = "#ef8a62",   # Light red (moderate disruption)
+  "Stable" = "#ffffcc",             # Light yellow (stable ±3%)
+  "Surplus 5-10%" = "#a1d99b",      # Light green (moderate surplus)
+  "Surplus >10%" = "#238b45",       # Dark green (strong surplus)
+  "Insufficient data" = "#999999"   # Gray
 )

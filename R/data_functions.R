@@ -17,7 +17,7 @@ calculate_category <- function(percent_change, total_expected) {
     total_expected == 0 | is.na(total_expected) | is.infinite(percent_change) ~ "Insufficient data",
     percent_change >= 10 ~ "Surplus >10%",
     percent_change >= 5 & percent_change < 10 ~ "Surplus 5-10%",
-    percent_change > -5 & percent_change < 5 ~ "Stable",
+    percent_change > -3 & percent_change < 3 ~ "Stable",
     percent_change > -10 & percent_change <= -5 ~ "Disruption 5-10%",
     percent_change <= -10 ~ "Disruption >10%",
     TRUE ~ "Stable"

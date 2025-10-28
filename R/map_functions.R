@@ -22,9 +22,10 @@ load_geojson_boundaries <- function(country_code, admin_level) {
 }
 
 # Create continuous color palette (matching PNG scale -50 to +50)
+# RED (disruption) -> YELLOW (stable) -> GREEN (surplus)
 create_continuous_palette <- function() {
   colorNumeric(
-    palette = colorRampPalette(c("#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641"))(100),
+    palette = colorRampPalette(c("#b2182b", "#ef8a62", "#ffffcc", "#a1d99b", "#238b45"))(100),
     domain = c(-50, 50),
     na.color = "#999999"
   )
