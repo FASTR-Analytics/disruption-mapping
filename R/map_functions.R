@@ -36,82 +36,31 @@ create_continuous_palette <- function() {
   )
 }
 
-# Create categorical color palette
-create_categorical_palette <- function() {
-  colorFactor(
-    palette = category_colors,
-    domain = all_categories,
-    na.color = "#999999"
-  )
-}
-
 # Render disruption map
-render_disruption_map <- function(map_data, color_scale = "continuous", show_labels = TRUE) {
+render_disruption_map <- function(map_data, show_labels = TRUE) {
 
-  # Create color palette based on selection
-  if (color_scale == "continuous") {
-    pal <- create_continuous_palette()
-    legend_title <- "% Change from Expected"
-    # Cap values at -50 to +50 to match PNG scale
-    fill_color <- ~pal(pmin(pmax(percent_change, -50), 50))
-    fill_pattern <- NULL
-  } else {
-    pal <- create_categorical_palette()
-    legend_title <- "Disruption Category"
-    fill_color <- ~pal(category)
-    # Use diagonal stripes for insufficient data
-    fill_pattern <- ~ifelse(category == "Insufficient data", "stripe", NA)
-  }
+  # Create continuous color palette
+  pal <- create_continuous_palette()
+  legend_title <- "% Change from Expected"
+  fill_color <- ~pal(pmin(pmax(percent_change, -50), 50))
 
   # Create hover labels
-  if (color_scale == "continuous") {
-    labels <- sprintf(
-      "<strong>%s</strong><br/>
-      Change: <b>%s%%</b><br/>
-      Actual: %s<br/>
-      Expected: %s",
-      map_data$name,
-      round(map_data$percent_change, 1),
-      format(round(map_data$total_actual), big.mark = ","),
-      format(round(map_data$total_expected), big.mark = ",")
-    ) %>% lapply(htmltools::HTML)
-  } else {
-    labels <- sprintf(
-      "<strong>%s</strong><br/>
-      Category: %s<br/>
-      Change: %s%%<br/>
-      Actual: %s<br/>
-      Expected: %s",
-      map_data$name,
-      map_data$category,
-      round(map_data$percent_change, 1),
-      format(round(map_data$total_actual), big.mark = ","),
-      format(round(map_data$total_expected), big.mark = ",")
-    ) %>% lapply(htmltools::HTML)
-  }
+  labels <- sprintf(
+    "<strong>%s</strong><br/>
+    Change: <b>%s%%</b><br/>
+    Actual: %s<br/>
+    Expected: %s",
+    map_data$name,
+    round(map_data$percent_change, 1),
+    format(round(map_data$total_actual), big.mark = ","),
+    format(round(map_data$total_expected), big.mark = ",")
+  ) %>% lapply(htmltools::HTML)
 
   # Create base map with modern basemap, scale and north arrow
   map <- leaflet(map_data, options = leafletOptions(zoomControl = TRUE)) %>%
-    addProviderTiles(providers$Esri.WorldTopoMap)
-
-  # Add stripe pattern for insufficient data (categorical mode only)
-  if (!is.null(fill_pattern) && exists("pattern_available") && pattern_available) {
-    map <- map %>%
-      leaflet.extras2::addPatterns(
-        patternId = "stripe",
-        patternType = "stripe",
-        stripeAngle = 45,
-        stripeColor = "#666666",
-        stripeWeight = 2,
-        backgroundColor = "#cccccc"
-      )
-  }
-
-  # Add polygons with optional pattern
-  map <- map %>%
+    addProviderTiles(providers$Esri.WorldTopoMap) %>%
     addPolygons(
       fillColor = fill_color,
-      fillPattern = if (exists("pattern_available") && pattern_available) fill_pattern else NULL,
       weight = 1,
       opacity = 1,
       color = "white",
@@ -140,29 +89,16 @@ render_disruption_map <- function(map_data, color_scale = "continuous", show_lab
         imperial = FALSE,
         updateWhenIdle = TRUE
       )
+    ) %>%
+    # Add legend
+    addLegend(
+      position = "bottomright",
+      pal = pal,
+      values = ~pmin(pmax(percent_change, -50), 50),
+      title = legend_title,
+      opacity = 0.7,
+      labFormat = labelFormat(suffix = "%")
     )
-
-  # Add legend
-  if (color_scale == "continuous") {
-    map <- map %>%
-      addLegend(
-        position = "bottomright",
-        pal = pal,
-        values = ~pmin(pmax(percent_change, -50), 50),
-        title = legend_title,
-        opacity = 0.7,
-        labFormat = labelFormat(suffix = "%")
-      )
-  } else {
-    map <- map %>%
-      addLegend(
-        position = "bottomright",
-        pal = pal,
-        values = ~category,
-        title = legend_title,
-        opacity = 0.7
-      )
-  }
 
   # Add text labels on polygons if requested
   if (show_labels) {
@@ -245,7 +181,6 @@ save_map_png <- function(map_data, filename,
                         country_name,
                         year,
                         period_label = NULL,
-                        color_scale = "continuous",
                         width = 12,
                         height = 10) {
 
@@ -262,76 +197,41 @@ save_map_png <- function(map_data, filename,
     subtitle_text <- paste("Admin area service volumes:", year)
   }
 
-  # Create color palette
-  if (color_scale == "continuous") {
-    # Continuous gradient matching leaflet
-    color_values <- c("#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641")
+  # Continuous gradient matching leaflet
+  color_values <- c("#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641")
 
-    # Create the map
-    p <- ggplot(data = map_data) +
-      geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
-              color = "white", size = 0.3) +
-      scale_fill_gradientn(
-        colors = color_values,
-        values = scales::rescale(c(-50, -10, 0, 10, 50)),
-        limits = c(-50, 50),
-        breaks = seq(-50, 50, 10),
-        labels = function(x) paste0(ifelse(x > 0, "+", ""), x, "%"),
-        name = "Percent change (actual vs expected)",
-        guide = guide_colorbar(
-          barwidth = 20,
-          barheight = 0.8,
-          title.position = "top",
-          title.hjust = 0.5
-        )
-      ) +
-      # Add district labels with values
-      geom_sf_text(
-        aes(label = paste0(round(percent_change, 0), "%")),
-        size = 2.5,
-        fontface = "bold",
-        color = "black"
-      ) +
-      # Add district names
-      geom_sf_text(
-        aes(label = name),
-        size = 2.2,
-        nudge_y = -0.05,
-        color = "black"
+  # Create the map
+  p <- ggplot(data = map_data) +
+    geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
+            color = "white", size = 0.3) +
+    scale_fill_gradientn(
+      colors = color_values,
+      values = scales::rescale(c(-50, -10, 0, 10, 50)),
+      limits = c(-50, 50),
+      breaks = seq(-50, 50, 10),
+      labels = function(x) paste0(ifelse(x > 0, "+", ""), x, "%"),
+      name = "Percent change (actual vs expected)",
+      guide = guide_colorbar(
+        barwidth = 20,
+        barheight = 0.8,
+        title.position = "top",
+        title.hjust = 0.5
       )
-  } else {
-    # Categorical palette with diagonal stripes for insufficient data (if available)
-    if (exists("pattern_available") && pattern_available) {
-      p <- ggplot(data = map_data) +
-        ggpattern::geom_sf_pattern(
-          aes(fill = category,
-              pattern = ifelse(category == "Insufficient data", "stripe", "none"),
-              pattern_angle = ifelse(category == "Insufficient data", 45, 0),
-              pattern_density = ifelse(category == "Insufficient data", 0.1, 0),
-              pattern_spacing = ifelse(category == "Insufficient data", 0.02, 0)),
-          pattern_color = "#666666",
-          pattern_fill = "#cccccc",
-          color = "white",
-          size = 0.3
-        )
-    } else {
-      # Fallback to regular geom_sf if pattern not available
-      p <- ggplot(data = map_data) +
-        geom_sf(aes(fill = category), color = "white", size = 0.3)
-    }
-    p <- p +
-      scale_fill_manual(
-        values = category_colors,
-        name = "Disruption Category",
-        drop = FALSE
-      ) +
-      # Add district labels
-      geom_sf_text(
-        aes(label = paste0(name, "\n(", round(percent_change, 0), "%)")),
-        size = 2.5,
-        fontface = "bold"
-      )
-  }
+    ) +
+    # Add district labels with values
+    geom_sf_text(
+      aes(label = paste0(round(percent_change, 0), "%")),
+      size = 2.5,
+      fontface = "bold",
+      color = "black"
+    ) +
+    # Add district names
+    geom_sf_text(
+      aes(label = name),
+      size = 2.2,
+      nudge_y = -0.05,
+      color = "black"
+    )
 
   # Add common elements
   p <- p +

@@ -112,18 +112,12 @@ create_map_tab <- function(db_connected = FALSE) {
         ),
 
         fluidRow(
-          column(3,
+          column(4,
             selectInput("indicator", "Select Indicator:",
                        choices = NULL,
                        selected = NULL)
           ),
-          column(3,
-            selectInput("color_scale", "Color Scale:",
-                       choices = c("Continuous" = "continuous",
-                                 "Categories" = "categorical"),
-                       selected = "continuous")
-          ),
-          column(3,
+          column(4,
             checkboxInput("show_labels", "Show Values on Map", value = TRUE)
           )
         )
@@ -316,30 +310,20 @@ create_about_tab <- function() {
           actual service counts against expected values based on historical trends. All mapping
           is disaggregated by individual indicator."),
 
-        h4("Color Scale Options"),
+        h4("Color Scale"),
+        p("The disruption map uses a continuous color gradient that smoothly represents the full numeric range of disruption percentages:"),
         tags$ul(
-          tags$li(tags$b("Continuous:"), " Shows percent change on a smooth red-yellow-green gradient.
-                  Red indicates disruption (negative), yellow is stable, green is surplus (positive)."),
-          tags$li(tags$b("Categories:"), " Groups disruptions into discrete categories for easier interpretation."),
-          tags$li(tags$b("Show Values on Map:"), " Displays the actual percent change value on each area for quick reference.")
+          tags$li(tags$b("Red:"), " Indicates disruption (actual services below expected). Deeper red indicates greater disruption."),
+          tags$li(tags$b("Yellow:"), " Indicates stable service levels (actual within ±3% of expected)."),
+          tags$li(tags$b("Green:"), " Indicates surplus (actual services above expected). Deeper green indicates greater surplus."),
+          tags$li(tags$b("Blue:"), " Indicates insufficient data to calculate disruption.")
         ),
+        p("The scale ranges from -50% to +50%, with values capped at these extremes for clarity."),
 
-        h4("Disruption Categories (when using categorical scale)"),
-        tags$ul(
-          tags$li(tags$b("Disruption >20%:"), " Actual services are 20% or more below expected"),
-          tags$li(tags$b("Disruption 15-20%:"), " Actual services are 15-20% below expected"),
-          tags$li(tags$b("Disruption 10-15%:"), " Actual services are 10-15% below expected"),
-          tags$li(tags$b("Disruption 7-10%:"), " Actual services are 7-10% below expected"),
-          tags$li(tags$b("Disruption 5-7%:"), " Actual services are 5-7% below expected"),
-          tags$li(tags$b("Disruption 3-5%:"), " Actual services are 3-5% below expected"),
-          tags$li(tags$b("Stable:"), " Actual services are within ±3% of expected"),
-          tags$li(tags$b("Surplus 3-5%:"), " Actual services are 3-5% above expected"),
-          tags$li(tags$b("Surplus 5-7%:"), " Actual services are 5-7% above expected"),
-          tags$li(tags$b("Surplus 7-10%:"), " Actual services are 7-10% above expected"),
-          tags$li(tags$b("Surplus 10-15%:"), " Actual services are 10-15% above expected"),
-          tags$li(tags$b("Surplus 15-20%:"), " Actual services are 15-20% above expected"),
-          tags$li(tags$b("Surplus >20%:"), " Actual services are 20% or more above expected"),
-          tags$li(tags$b("Insufficient data:"), " Not enough data to calculate disruptions")
+        tags$div(
+          style = "margin: 15px 0;",
+          tags$b("Show Values on Map:"),
+          " Toggle this option to display the actual percent change value on each area for quick reference."
         ),
 
         h4("Data Requirements"),
@@ -359,9 +343,9 @@ create_about_tab <- function() {
           tags$li("Choose administrative level (2 for states/provinces, 3 for districts/LGAs)"),
           tags$li("Upload a disruption analysis CSV file or use database (if configured)"),
           tags$li("Select year and indicator to map"),
-          tags$li("Choose color scale (continuous for precise values, categorical for quick overview)"),
           tags$li("Toggle 'Show Values on Map' to display percent change labels on areas"),
-          tags$li("Explore the map (hover for details, zoom and pan) and statistics tabs")
+          tags$li("Explore the map (hover for details, zoom and pan), heatmap, and statistics tabs"),
+          tags$li("Download maps and heatmaps as high-resolution PNG images using the download buttons")
         )
       )
     )

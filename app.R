@@ -353,11 +353,10 @@ server <- function(input, output, session) {
 
   # Render map
   output$map <- renderLeaflet({
-    req(map_data(), input$color_scale, input$show_labels)
+    req(map_data(), input$show_labels)
 
     render_disruption_map(
       map_data = map_data(),
-      color_scale = input$color_scale,
       show_labels = input$show_labels
     )
   })
@@ -692,7 +691,7 @@ server <- function(input, output, session) {
         ) %>%
         mutate(
           percent_change = (total_actual - total_expected) / total_expected * 100,
-          category = calculate_category(percent_change, total_expected)
+          category = calculate_heatmap_category(percent_change, total_expected)
         )
 
       names(heatmap_data)[1] <- "admin_area"
@@ -700,7 +699,10 @@ server <- function(input, output, session) {
       # Join with indicator labels and use indicator_common_id as fallback
       heatmap_data <- heatmap_data %>%
         left_join(current_indicator_labels(), by = c("indicator_common_id" = "indicator_id")) %>%
-        mutate(display_name = coalesce(indicator_name, indicator_common_id))
+        mutate(
+          display_name = coalesce(indicator_name, indicator_common_id),
+          category = factor(category, levels = heatmap_categories)
+        )
 
       # Create title with time period
       year_data <- rv$disruption_data %>%
@@ -725,12 +727,11 @@ server <- function(input, output, session) {
         period_label <- as.character(input$year)
       }
 
-      # Create plot
+      # Create plot without legend
       p <- ggplot(heatmap_data, aes(x = display_name, y = admin_area, fill = category)) +
         geom_tile(color = "white", size = 0.5) +
         scale_fill_manual(
-          values = category_colors,
-          name = "Service volumes vs expected",
+          values = heatmap_colors,
           drop = FALSE
         ) +
         theme_minimal() +
@@ -738,9 +739,7 @@ server <- function(input, output, session) {
           axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
           axis.text.y = element_text(size = 10),
           axis.title = element_text(size = 11, face = "bold"),
-          legend.position = "bottom",
-          legend.title = element_text(size = 10, face = "bold"),
-          legend.text = element_text(size = 9),
+          legend.position = "none",
           panel.grid = element_blank(),
           plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
           plot.subtitle = element_text(size = 11, hjust = 0.5, margin = margin(b = 10)),
@@ -753,8 +752,7 @@ server <- function(input, output, session) {
           x = "Health service indicator",
           y = "District",
           caption = "Categories based on deviation from expected service volumes predicted by statistical model"
-        ) +
-        guides(fill = guide_legend(nrow = 1))
+        )
 
       # Save
       ggsave(
@@ -843,7 +841,6 @@ server <- function(input, output, session) {
           country_name = country_name,
           year = input$year,
           period_label = period_label,
-          color_scale = input$color_scale,
           width = 12,
           height = 10
         )
