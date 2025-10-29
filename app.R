@@ -240,6 +240,22 @@ server <- function(input, output, session) {
     }
   })
 
+  get_indicator_display_name <- function(indicator_id) {
+    if (is.null(indicator_id) || length(indicator_id) == 0 || is.na(indicator_id)) {
+      return("")
+    }
+    labels_df <- current_indicator_labels()
+    if (is.null(labels_df) || nrow(labels_df) == 0) {
+      return(as.character(indicator_id))
+    }
+    matches <- labels_df$indicator_name[labels_df$indicator_id == indicator_id]
+    matches <- matches[!is.na(matches) & matches != ""]
+    if (length(matches) == 0) {
+      return(as.character(indicator_id))
+    }
+    as.character(matches[1])
+  }
+
   # Initialize country choices
   observe({
     countries <- get_available_countries()
@@ -627,10 +643,7 @@ server <- function(input, output, session) {
   output$current_indicator_display <- renderUI({
     req(input$indicator)
 
-    indicator_name <- current_indicator_labels() %>%
-      filter(indicator_id == input$indicator) %>%
-      pull(indicator_name) %>%
-      head(1)
+    indicator_text <- get_indicator_display_name(input$indicator)
 
     indicator_data <- rv$disruption_data %>%
       filter(
@@ -648,11 +661,11 @@ server <- function(input, output, session) {
       period_label <- as.character(input$year)
     }
 
-    if (length(indicator_name) > 0) {
+    if (!is.null(indicator_text) && indicator_text != "") {
       if (!is.null(period_label)) {
-        tags$span(paste(indicator_name, "-", period_label))
+        tags$span(paste(indicator_text, "-", period_label))
       } else {
-        tags$span(indicator_name)
+        tags$span(indicator_text)
       }
     } else {
       tags$span(style = "color: #999;", "No indicator selected")
@@ -662,10 +675,7 @@ server <- function(input, output, session) {
   output$yoy_indicator_display <- renderUI({
     req(input$yoy_indicator, input$yoy_volume_metric)
 
-    indicator_name <- current_indicator_labels() %>%
-      filter(indicator_id == input$yoy_indicator) %>%
-      pull(indicator_name) %>%
-      head(1)
+    indicator_text <- get_indicator_display_name(input$yoy_indicator)
 
     volume_labels <- c(
       "count_final_none" = "Not adjusted",
@@ -676,10 +686,8 @@ server <- function(input, output, session) {
 
     volume_label <- volume_labels[[input$yoy_volume_metric]]
 
-    indicator_text <- if (!is.null(indicator_name) && !is.na(indicator_name)) {
-      indicator_name
-    } else {
-      input$yoy_indicator
+    if (is.null(indicator_text) || indicator_text == "") {
+      indicator_text <- input$yoy_indicator
     }
 
     if (!is.null(volume_label) && !is.na(volume_label)) {
@@ -710,10 +718,7 @@ server <- function(input, output, session) {
   output$current_indicator_display_stats <- renderUI({
     req(input$indicator)
 
-    indicator_name <- current_indicator_labels() %>%
-      filter(indicator_id == input$indicator) %>%
-      pull(indicator_name) %>%
-      head(1)
+    indicator_text <- get_indicator_display_name(input$indicator)
 
     indicator_data <- rv$disruption_data %>%
       filter(
@@ -731,11 +736,11 @@ server <- function(input, output, session) {
       period_label <- as.character(input$year)
     }
 
-    if (length(indicator_name) > 0) {
+    if (!is.null(indicator_text) && indicator_text != "") {
       if (!is.null(period_label)) {
-        tags$span(paste(indicator_name, "-", period_label))
+        tags$span(paste(indicator_text, "-", period_label))
       } else {
-        tags$span(indicator_name)
+        tags$span(indicator_text)
       }
     } else {
       tags$span(style = "color: #999;", "No indicator selected")
@@ -1099,12 +1104,14 @@ server <- function(input, output, session) {
   # Download map as PNG
   output$download_map <- downloadHandler(
     filename = function() {
-      indicator_name <- current_indicator_labels() %>%
-        filter(indicator_id == input$indicator) %>%
-        pull(indicator_name) %>%
-        head(1)
-
+      indicator_name <- get_indicator_display_name(input$indicator)
+      if (is.null(indicator_name) || indicator_name == "") {
+        indicator_name <- input$indicator
+      }
       indicator_safe <- gsub("[^A-Za-z0-9_-]", "_", indicator_name)
+      if (is.na(indicator_safe) || indicator_safe == "") {
+        indicator_safe <- gsub("[^A-Za-z0-9_-]", "_", input$indicator)
+      }
 
       paste0(
         input$country, "_",
@@ -1120,10 +1127,10 @@ server <- function(input, output, session) {
                       type = "message", duration = 3)
 
       # Get indicator name
-      indicator_name <- current_indicator_labels() %>%
-        filter(indicator_id == input$indicator) %>%
-        pull(indicator_name) %>%
-        head(1)
+      indicator_name <- get_indicator_display_name(input$indicator)
+      if (is.null(indicator_name) || indicator_name == "") {
+        indicator_name <- input$indicator
+      }
 
       # Get country name
       country_name <- tools::toTitleCase(gsub("([0-9])", " \\1", input$country))
@@ -1164,16 +1171,14 @@ server <- function(input, output, session) {
 
   output$download_yoy_map <- downloadHandler(
     filename = function() {
-      indicator_name <- current_indicator_labels() %>%
-        filter(indicator_id == input$yoy_indicator) %>%
-        pull(indicator_name) %>%
-        head(1)
-
-      if (is.null(indicator_name) || is.na(indicator_name)) {
+      indicator_name <- get_indicator_display_name(input$yoy_indicator)
+      if (is.null(indicator_name) || indicator_name == "") {
         indicator_name <- input$yoy_indicator
       }
-
       indicator_safe <- gsub("[^A-Za-z0-9_-]", "_", indicator_name)
+      if (is.na(indicator_safe) || indicator_safe == "") {
+        indicator_safe <- gsub("[^A-Za-z0-9_-]", "_", input$yoy_indicator)
+      }
       volume_labels <- c(
         "count_final_none" = "not_adjusted",
         "count_final_outliers" = "adj_outliers",
@@ -1200,12 +1205,8 @@ server <- function(input, output, session) {
         duration = 3
       )
 
-      indicator_name <- current_indicator_labels() %>%
-        filter(indicator_id == input$yoy_indicator) %>%
-        pull(indicator_name) %>%
-        head(1)
-
-      if (is.null(indicator_name) || is.na(indicator_name)) {
+      indicator_name <- get_indicator_display_name(input$yoy_indicator)
+      if (is.null(indicator_name) || indicator_name == "") {
         indicator_name <- input$yoy_indicator
       }
 
