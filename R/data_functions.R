@@ -390,7 +390,27 @@ calculate_disruption_summary <- function(data, year_val, indicator_id, admin_lev
 # Load and validate disruption data from CSV
 load_disruption_data <- function(file_path) {
 
-  data <- data.table::fread(file_path, data.table = FALSE)
+  header <- data.table::fread(file_path, nrows = 0, showProgress = FALSE)
+
+  col_classes_map <- list(
+    admin_area_2 = "character",
+    admin_area_3 = "character",
+    indicator_common_id = "character",
+    period_id = "integer",
+    year = "integer",
+    count_sum = "numeric",
+    count_expect_sum = "numeric",
+    percent_change = "numeric"
+  )
+
+  available_classes <- col_classes_map[names(col_classes_map) %in% names(header)]
+
+  data <- data.table::fread(
+    file_path,
+    data.table = FALSE,
+    colClasses = available_classes,
+    showProgress = FALSE
+  )
 
   # Detect admin level from columns
   has_admin_2 <- "admin_area_2" %in% names(data)
