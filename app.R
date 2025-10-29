@@ -143,6 +143,7 @@ ui <- dashboardPage(
     # All tabs from ui_components.R
     tabItems(
       create_map_tab(db_connected),
+      create_yoy_tab(),
       create_heatmap_tab(),
       create_stats_tab(),
       create_about_tab()
@@ -162,6 +163,11 @@ server <- function(input, output, session) {
     disruption_data = NULL,
     map_data = NULL,
     data_admin_level = NULL,
+    yoy_geo_data = NULL,
+    yoy_data = NULL,
+    yoy_data_admin_level = NULL,
+    yoy_admin_column = NULL,
+    yoy_admin_columns = character(0),
     lang = "en"  # Default language
   )
 
@@ -189,9 +195,27 @@ server <- function(input, output, session) {
       # Keep current selection
       current_selection <- input$indicator
 
-      updateSelectInput(session, "indicator",
-                       choices = indicator_choices,
-                       selected = current_selection)
+        updateSelectInput(session, "indicator",
+                         choices = indicator_choices,
+                         selected = current_selection)
+    }
+
+    if (!is.null(rv$yoy_data)) {
+      yoy_indicators <- rv$yoy_data %>%
+        distinct(indicator_common_id) %>%
+        left_join(current_indicator_labels(), by = c("indicator_common_id" = "indicator_id")) %>%
+        arrange(indicator_name)
+
+      yoy_indicator_choices <- setNames(yoy_indicators$indicator_common_id,
+                                       ifelse(is.na(yoy_indicators$indicator_name),
+                                              yoy_indicators$indicator_common_id,
+                                              yoy_indicators$indicator_name))
+
+      current_yoy_selection <- input$yoy_indicator
+
+      updateSelectInput(session, "yoy_indicator",
+                       choices = yoy_indicator_choices,
+                       selected = current_yoy_selection)
     }
 
     # Show notification
@@ -222,6 +246,9 @@ server <- function(input, output, session) {
     updateSelectInput(session, "country",
                      choices = countries,
                      selected = if(length(countries) > 0) countries[1] else NULL)
+    updateSelectInput(session, "yoy_country",
+                     choices = countries,
+                     selected = if(length(countries) > 0) countries[1] else NULL)
   })
 
   # Load GeoJSON when country or admin level changes
@@ -235,6 +262,24 @@ server <- function(input, output, session) {
         level_name <- if(input$admin_level == "2") "State/Province" else "District/LGA"
         showNotification(paste("Loaded", level_name, "boundaries for", tools::toTitleCase(input$country)),
                         type = "message")
+      }
+    }, error = function(e) {
+      showNotification(paste("Error loading GeoJSON:", e$message), type = "error")
+    })
+  })
+
+  observeEvent(c(input$yoy_country, input$yoy_admin_level), {
+    req(input$yoy_country, input$yoy_admin_level)
+
+    tryCatch({
+      rv$yoy_geo_data <- load_geojson_boundaries(input$yoy_country, input$yoy_admin_level)
+
+      if (!is.null(rv$yoy_geo_data)) {
+        level_name <- if(input$yoy_admin_level == "3") "District/LGA" else "State/Province"
+        showNotification(
+          paste("Loaded", level_name, "boundaries for", tools::toTitleCase(input$yoy_country)),
+          type = "message"
+        )
       }
     }, error = function(e) {
       showNotification(paste("Error loading GeoJSON:", e$message), type = "error")
@@ -349,6 +394,152 @@ server <- function(input, output, session) {
     })
   })
 
+  observeEvent(input$yoy_file, {
+    req(input$yoy_file)
+
+    file_size_mb <- round(input$yoy_file$size / 1024^2, 2)
+    showNotification(
+      paste0("Uploading file (", file_size_mb, " MB)..."),
+      type = "message",
+      duration = 3
+    )
+
+    tryCatch({
+      withProgress(message = paste0("Loading CSV file (", file_size_mb, " MB)..."), value = 0, {
+        incProgress(0.3, detail = "Reading file...")
+        result <- load_yoy_data(input$yoy_file$datapath)
+        rv$yoy_data <- result$data
+
+        incProgress(0.4, detail = "Preparing indicators...")
+
+        available_levels <- result$available_levels
+        level_labels <- c(
+          "Admin level 2 – State/Province" = "2",
+          "Admin level 3 – District/LGA" = "3"
+        )
+        available_choices <- level_labels[level_labels %in% available_levels]
+        if (length(available_choices) == 0) {
+          available_choices <- level_labels
+        }
+        selected_level <- if ("2" %in% available_choices) "2" else available_choices[1]
+        rv$yoy_data_admin_level <- selected_level
+
+        updateSelectInput(
+          session,
+          "yoy_admin_level",
+          choices = available_choices,
+          selected = selected_level
+        )
+
+        admin_columns <- result$admin_columns
+        rv$yoy_admin_columns <- admin_columns
+        if (length(admin_columns) > 0) {
+          admin_labels <- tools::toTitleCase(gsub("_", " ", admin_columns))
+          admin_choices <- setNames(
+            admin_columns,
+            paste0(admin_labels, " (", admin_columns, ")")
+          )
+          preferred_column <- NULL
+          if (!is.null(selected_level)) {
+            if (selected_level == "3" && "admin_area_3" %in% admin_columns) {
+              preferred_column <- "admin_area_3"
+            } else if (selected_level == "2" && "admin_area_2" %in% admin_columns) {
+              preferred_column <- "admin_area_2"
+            }
+          }
+          if (is.null(preferred_column) && "admin_area_4" %in% admin_columns) {
+            preferred_column <- "admin_area_4"
+          }
+          if (is.null(preferred_column) && length(admin_columns) > 0) {
+            preferred_column <- admin_columns[1]
+          }
+          rv$yoy_admin_column <- preferred_column
+          updateSelectInput(
+            session,
+            "yoy_admin_column",
+            choices = admin_choices,
+            selected = preferred_column
+          )
+        } else {
+          rv$yoy_admin_column <- NULL
+          rv$yoy_admin_columns <- character(0)
+          updateSelectInput(
+            session,
+            "yoy_admin_column",
+            choices = setNames(character(0), character(0)),
+            selected = NULL
+          )
+        }
+
+        unique_indicators <- unique(rv$yoy_data$indicator_common_id)
+        labels_df <- current_indicator_labels()
+
+        indicators_dt <- data.table(indicator_common_id = unique_indicators)
+        labels_dt <- as.data.table(labels_df)
+        setkey(indicators_dt, indicator_common_id)
+        setkey(labels_dt, indicator_id)
+
+        merged <- labels_dt[indicators_dt, on = .(indicator_id = indicator_common_id)]
+        merged <- merged[order(indicator_name)]
+
+        indicator_choices <- setNames(
+          merged$indicator_id,
+          ifelse(is.na(merged$indicator_name), merged$indicator_id, merged$indicator_name)
+        )
+
+        selected_indicator <- if (length(indicator_choices) > 0) indicator_choices[1] else NULL
+        updateSelectInput(
+          session,
+          "yoy_indicator",
+          choices = indicator_choices,
+          selected = selected_indicator
+        )
+
+        incProgress(0.3, detail = "Complete!")
+      })
+
+      row_count <- format(nrow(rv$yoy_data), big.mark = ",")
+      showNotification(
+        paste0("Year-on-year data loaded successfully (", row_count, " rows)"),
+        type = "message",
+        duration = 5
+      )
+    }, error = function(e) {
+      showNotification(paste("Error loading year-on-year data:", e$message), type = "error")
+      rv$yoy_data <- NULL
+      rv$yoy_admin_columns <- character(0)
+      rv$yoy_admin_column <- NULL
+    })
+  })
+
+  observeEvent(input$yoy_admin_level, {
+    req(input$yoy_admin_level)
+    rv$yoy_data_admin_level <- input$yoy_admin_level
+
+    available_cols <- rv$yoy_admin_columns
+    current_col <- isolate(input$yoy_admin_column)
+
+    if (length(available_cols) > 0) {
+      preferred_column <- current_col
+      if (is.null(preferred_column) || !(preferred_column %in% available_cols)) {
+        if (input$yoy_admin_level == "3" && "admin_area_3" %in% available_cols) {
+          preferred_column <- "admin_area_3"
+        } else if (input$yoy_admin_level == "2" && "admin_area_2" %in% available_cols) {
+          preferred_column <- "admin_area_2"
+        } else {
+          preferred_column <- available_cols[1]
+        }
+        updateSelectInput(session, "yoy_admin_column", selected = preferred_column)
+      }
+      rv$yoy_admin_column <- preferred_column
+    }
+  })
+
+  observeEvent(input$yoy_admin_column, {
+    req(input$yoy_admin_column)
+    rv$yoy_admin_column <- input$yoy_admin_column
+  })
+
   # Calculate disruption summary for selected indicator
   disruption_summary <- reactive({
     req(rv$disruption_data, input$year, input$indicator, rv$data_admin_level)
@@ -374,12 +565,62 @@ server <- function(input, output, session) {
 
   # Render map
   output$map <- renderLeaflet({
-    req(map_data(), input$show_labels)
+    req(map_data())
+
+    show_labels <- isTRUE(input$show_labels)
 
     render_disruption_map(
       map_data = map_data(),
-      show_labels = input$show_labels
+      show_labels = show_labels
     )
+  })
+
+  yoy_summary_info <- reactive({
+    req(rv$yoy_data, input$yoy_indicator, input$yoy_admin_level, input$yoy_admin_column, input$yoy_volume_metric)
+
+    calculate_yoy_summary(
+      data = rv$yoy_data,
+      admin_level = input$yoy_admin_level,
+      admin_column = input$yoy_admin_column,
+      indicator_id = input$yoy_indicator,
+      volume_metric = input$yoy_volume_metric
+    )
+  })
+
+  yoy_map_data <- reactive({
+    info <- yoy_summary_info()
+    req(rv$yoy_geo_data, info)
+
+    map_data <- rv$yoy_geo_data %>%
+      left_join(info$summary, by = c("name" = "admin_area"))
+
+    return(map_data)
+  })
+
+  output$yoy_map <- renderLeaflet({
+    info <- yoy_summary_info()
+    req(yoy_map_data(), info)
+
+    render_yoy_map(
+      map_data = yoy_map_data(),
+      current_label = info$current_period_label,
+      previous_label = info$previous_period_label,
+      show_labels = isTRUE(input$yoy_show_labels)
+    )
+  })
+
+  # Helper reactive: last 6-month window for heatmap
+  heatmap_window <- reactive({
+    req(rv$disruption_data, input$year)
+
+    year_data <- rv$disruption_data %>%
+      filter(year == as.numeric(input$year))
+
+    window <- prepare_period_window(year_data, months = 6)
+    if (is.null(window$label)) {
+      window$label <- as.character(input$year)
+    }
+    window
   })
 
   # Display current indicator name on map tab
@@ -391,11 +632,78 @@ server <- function(input, output, session) {
       pull(indicator_name) %>%
       head(1)
 
+    indicator_data <- rv$disruption_data %>%
+      filter(
+        year == as.numeric(input$year),
+        indicator_common_id == input$indicator
+      )
+
+    period_info <- prepare_period_window(indicator_data, months = NULL)
+    period_label <- period_info$label
+
+    if (is.null(period_label)) {
+      period_label <- format_year_range(indicator_data)
+    }
+    if (is.null(period_label)) {
+      period_label <- as.character(input$year)
+    }
+
     if (length(indicator_name) > 0) {
-      tags$span(indicator_name)
+      if (!is.null(period_label)) {
+        tags$span(paste(indicator_name, "-", period_label))
+      } else {
+        tags$span(indicator_name)
+      }
     } else {
       tags$span(style = "color: #999;", "No indicator selected")
     }
+  })
+
+  output$yoy_indicator_display <- renderUI({
+    req(input$yoy_indicator, input$yoy_volume_metric)
+
+    indicator_name <- current_indicator_labels() %>%
+      filter(indicator_id == input$yoy_indicator) %>%
+      pull(indicator_name) %>%
+      head(1)
+
+    volume_labels <- c(
+      "count_final_none" = "Not adjusted",
+      "count_final_outliers" = "Adjusted for outliers",
+      "count_final_completeness" = "Adjusted for completeness",
+      "count_final_both" = "Adjusted for completeness and outliers"
+    )
+
+    volume_label <- volume_labels[[input$yoy_volume_metric]]
+
+    indicator_text <- if (!is.null(indicator_name) && !is.na(indicator_name)) {
+      indicator_name
+    } else {
+      input$yoy_indicator
+    }
+
+    if (!is.null(volume_label) && !is.na(volume_label)) {
+      tags$span(paste(indicator_text, "-", volume_label))
+    } else {
+      tags$span(indicator_text)
+    }
+  })
+
+  output$yoy_period_display <- renderUI({
+    info <- yoy_summary_info()
+    req(info$current_period_label, info$previous_period_label)
+
+    tags$div(
+      style = "margin-top: 18px;",
+      tags$div(
+        style = "font-size: 11px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;",
+        "Comparison Window"
+      ),
+      tags$div(
+        style = "font-size: 14px; color: #333; font-weight: 600;",
+        paste(info$current_period_label, "vs", info$previous_period_label)
+      )
+    )
   })
 
   # Display current indicator name on stats tab
@@ -407,8 +715,28 @@ server <- function(input, output, session) {
       pull(indicator_name) %>%
       head(1)
 
+    indicator_data <- rv$disruption_data %>%
+      filter(
+        year == as.numeric(input$year),
+        indicator_common_id == input$indicator
+      )
+
+    period_info <- prepare_period_window(indicator_data, months = NULL)
+    period_label <- period_info$label
+
+    if (is.null(period_label)) {
+      period_label <- format_year_range(indicator_data)
+    }
+    if (is.null(period_label)) {
+      period_label <- as.character(input$year)
+    }
+
     if (length(indicator_name) > 0) {
-      tags$span(indicator_name)
+      if (!is.null(period_label)) {
+        tags$span(paste(indicator_name, "-", period_label))
+      } else {
+        tags$span(indicator_name)
+      }
     } else {
       tags$span(style = "color: #999;", "No indicator selected")
     }
@@ -606,45 +934,30 @@ server <- function(input, output, session) {
 
   # Heatmap subtitle
   output$heatmap_subtitle <- renderUI({
-    req(input$year, rv$disruption_data)
-
-    # Calculate time period from data
-    year_data <- rv$disruption_data %>%
-      filter(year == as.numeric(input$year))
-
-    # Extract months from period_id if available
-    if ("period_id" %in% names(year_data) && nrow(year_data) > 0) {
-      year_data <- year_data %>%
-        mutate(month = as.integer(substr(period_id, 5, 6)))
-
-      min_month <- min(year_data$month, na.rm = TRUE)
-      max_month <- max(year_data$month, na.rm = TRUE)
-
-      month_names <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-
-      if (min_month == 1 && max_month == 12) {
-        period_label <- paste("Jan-Dec", input$year)
-      } else {
-        period_label <- paste0(month_names[min_month], "-",
-                              month_names[max_month], " ", input$year)
-      }
-    } else {
+    info <- heatmap_window()
+    period_label <- info$label
+    if (is.null(period_label)) {
       period_label <- as.character(input$year)
     }
 
-    tags$span(paste("Comparison of actual vs expected service volumes -", period_label))
+    tags$span(paste("Last 6 months of data:", period_label))
   })
 
   # Heatmap plot
   output$heatmap_plot <- renderPlot({
     req(rv$disruption_data, input$year, rv$data_admin_level)
+    info <- heatmap_window()
 
     # Calculate disruption for ALL indicators
     admin_col <- if(rv$data_admin_level == "3") "admin_area_3" else "admin_area_2"
 
-    heatmap_data <- rv$disruption_data %>%
-      filter(year == as.numeric(input$year)) %>%
+    heatmap_data <- info$data
+
+    validate(
+      need(nrow(heatmap_data) > 0, "No data available for the last 6 months.")
+    )
+
+    heatmap_data <- heatmap_data %>%
       group_by(across(all_of(admin_col)), indicator_common_id) %>%
       summarise(
         total_actual = sum(count_sum, na.rm = TRUE),
@@ -703,11 +1016,18 @@ server <- function(input, output, session) {
     content = function(file) {
       showNotification("Generating heatmap image...", type = "message", duration = 3)
 
+      info <- heatmap_window()
+      heatmap_data <- info$data
+
+      if (nrow(heatmap_data) == 0) {
+        showNotification("No data available for the last 6 months.", type = "error", duration = 5)
+        return(NULL)
+      }
+
       # Calculate heatmap data
       admin_col <- if(rv$data_admin_level == "3") "admin_area_3" else "admin_area_2"
 
-      heatmap_data <- rv$disruption_data %>%
-        filter(year == as.numeric(input$year)) %>%
+      heatmap_data <- heatmap_data %>%
         group_by(across(all_of(admin_col)), indicator_common_id) %>%
         summarise(
           total_actual = sum(count_sum, na.rm = TRUE),
@@ -729,26 +1049,8 @@ server <- function(input, output, session) {
           category = factor(category, levels = heatmap_categories)
         )
 
-      # Create title with time period
-      year_data <- rv$disruption_data %>%
-        filter(year == as.numeric(input$year))
-
-      if ("period_id" %in% names(year_data) && nrow(year_data) > 0) {
-        year_data <- year_data %>%
-          mutate(month = as.integer(substr(period_id, 5, 6)))
-
-        min_month <- min(year_data$month, na.rm = TRUE)
-        max_month <- max(year_data$month, na.rm = TRUE)
-        month_names <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-
-        if (min_month == 1 && max_month == 12) {
-          period_label <- paste("Jan-Dec", input$year)
-        } else {
-          period_label <- paste0(month_names[min_month], "-",
-                                month_names[max_month], " ", input$year)
-        }
-      } else {
+      period_label <- info$label
+      if (is.null(period_label)) {
         period_label <- as.character(input$year)
       }
 
@@ -826,35 +1128,18 @@ server <- function(input, output, session) {
       # Get country name
       country_name <- tools::toTitleCase(gsub("([0-9])", " \\1", input$country))
 
-      # Calculate time period from data
-      year_data <- rv$disruption_data %>%
-        filter(year == as.numeric(input$year),
-               indicator_common_id == input$indicator)
+      indicator_period <- rv$disruption_data %>%
+        filter(
+          year == as.numeric(input$year),
+          indicator_common_id == input$indicator
+        )
 
-      # Extract months from period_id if available
-      if ("period_id" %in% names(year_data) && nrow(year_data) > 0) {
-        # Extract month from period_id (format: YYYYMM)
-        year_data <- year_data %>%
-          mutate(month = as.integer(substr(period_id, 5, 6)))
-
-        min_month <- min(year_data$month, na.rm = TRUE)
-        max_month <- max(year_data$month, na.rm = TRUE)
-
-        # Month names
-        month_names <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-
-        # Create period label
-        if (min_month == max_month) {
-          period_label <- paste(month_names[min_month], input$year)
-        } else if (min_month == 1 && max_month == 12) {
-          period_label <- paste("Jan-Dec", input$year)
-        } else {
-          period_label <- paste0(month_names[min_month], "-",
-                                month_names[max_month], " ", input$year)
-        }
-      } else {
-        # Fallback if no period_id
+      period_info <- prepare_period_window(indicator_period, months = NULL)
+      period_label <- period_info$label
+      if (is.null(period_label)) {
+        period_label <- format_year_range(indicator_period)
+      }
+      if (is.null(period_label)) {
         period_label <- as.character(input$year)
       }
 
@@ -873,6 +1158,98 @@ server <- function(input, output, session) {
         showNotification("Professional map exported successfully!", type = "message", duration = 3)
       }, error = function(e) {
         showNotification(paste("Error exporting map:", e$message), type = "error", duration = 10)
+      })
+    }
+  )
+
+  output$download_yoy_map <- downloadHandler(
+    filename = function() {
+      indicator_name <- current_indicator_labels() %>%
+        filter(indicator_id == input$yoy_indicator) %>%
+        pull(indicator_name) %>%
+        head(1)
+
+      if (is.null(indicator_name) || is.na(indicator_name)) {
+        indicator_name <- input$yoy_indicator
+      }
+
+      indicator_safe <- gsub("[^A-Za-z0-9_-]", "_", indicator_name)
+      volume_labels <- c(
+        "count_final_none" = "not_adjusted",
+        "count_final_outliers" = "adj_outliers",
+        "count_final_completeness" = "adj_completeness",
+        "count_final_both" = "adj_both"
+      )
+      volume_suffix <- volume_labels[[input$yoy_volume_metric]]
+      if (is.null(volume_suffix) || is.na(volume_suffix)) {
+        volume_suffix <- "volume"
+      }
+
+      paste0(
+        input$yoy_country, "_",
+        indicator_safe, "_",
+        volume_suffix, "_yoy_",
+        format(Sys.Date(), "%Y%m%d"),
+        ".png"
+      )
+    },
+    content = function(file) {
+      showNotification(
+        "Generating professional year-on-year map image... This may take a few seconds.",
+        type = "message",
+        duration = 3
+      )
+
+      indicator_name <- current_indicator_labels() %>%
+        filter(indicator_id == input$yoy_indicator) %>%
+        pull(indicator_name) %>%
+        head(1)
+
+      if (is.null(indicator_name) || is.na(indicator_name)) {
+        indicator_name <- input$yoy_indicator
+      }
+
+      volume_labels <- c(
+        "count_final_none" = "Not adjusted",
+        "count_final_outliers" = "Adjusted for outliers",
+        "count_final_completeness" = "Adjusted for completeness",
+        "count_final_both" = "Adjusted for completeness and outliers"
+      )
+
+      volume_label <- volume_labels[[input$yoy_volume_metric]]
+      if (is.null(volume_label) || is.na(volume_label)) {
+        volume_label <- "Volume"
+      }
+
+      indicator_title <- paste(indicator_name, "-", volume_label)
+      country_name <- tools::toTitleCase(gsub("([0-9])", " \\1", input$yoy_country))
+      info <- yoy_summary_info()
+
+      period_label <- paste(info$current_period_label, "vs", info$previous_period_label)
+
+      tryCatch({
+        save_map_png(
+          map_data = yoy_map_data(),
+          filename = file,
+          indicator_name = indicator_title,
+          country_name = country_name,
+          year = format(Sys.Date(), "%Y"),
+          period_label = period_label,
+          width = 12,
+          height = 10,
+          legend_title = "Percent change vs previous year",
+          caption_text = paste(
+            "Positive values = higher service utilization than the same months in the previous year; negative values = lower utilization.",
+            "\nValues capped at ±50%. Areas with insufficient data display n/a."
+          )
+        )
+        showNotification(
+          "Professional year-on-year map exported successfully!",
+          type = "message",
+          duration = 3
+        )
+      }, error = function(e) {
+        showNotification(paste("Error exporting year-on-year map:", e$message), type = "error", duration = 10)
       })
     }
   )

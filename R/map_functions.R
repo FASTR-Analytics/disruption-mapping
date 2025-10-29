@@ -175,6 +175,161 @@ render_disruption_map <- function(map_data, show_labels = TRUE) {
   return(map)
 }
 
+render_yoy_map <- function(map_data, current_label, previous_label, show_labels = TRUE) {
+  pal <- create_continuous_palette()
+  legend_title <- "% Change vs Previous Year"
+
+  current_label <- ifelse(is.null(current_label), "Current period", current_label)
+  previous_label <- ifelse(is.null(previous_label), "Previous year", previous_label)
+
+  percent_display <- ifelse(
+    is.na(map_data$percent_change),
+    "n/a",
+    paste0(round(map_data$percent_change, 1), "%")
+  )
+
+  current_display <- ifelse(
+    is.na(map_data$current_total),
+    "n/a",
+    format(round(map_data$current_total), big.mark = ",")
+  )
+
+  previous_display <- ifelse(
+    is.na(map_data$previous_total),
+    "n/a",
+    format(round(map_data$previous_total), big.mark = ",")
+  )
+
+  absolute_display <- ifelse(
+    is.na(map_data$absolute_change),
+    "n/a",
+    format(round(map_data$absolute_change), big.mark = ",")
+  )
+
+  labels <- sprintf(
+    "<strong>%s</strong><br/>
+    Change: <b>%s</b><br/>
+    %s: %s<br/>
+    %s: %s<br/>
+    Absolute change: %s",
+    map_data$name,
+    percent_display,
+    current_label,
+    current_display,
+    previous_label,
+    previous_display,
+    absolute_display
+  ) %>% lapply(htmltools::HTML)
+
+  map <- leaflet(map_data, options = leafletOptions(zoomControl = TRUE)) %>%
+    addProviderTiles(providers$Esri.WorldTopoMap) %>%
+    addPolygons(
+      fillColor = ~pal(pmin(pmax(percent_change, -50), 50)),
+      weight = 1,
+      opacity = 1,
+      color = "white",
+      dashArray = "3",
+      fillOpacity = 0.7,
+      highlightOptions = highlightOptions(
+        weight = 3,
+        color = "#666",
+        dashArray = "",
+        fillOpacity = 0.8,
+        bringToFront = TRUE
+      ),
+      label = labels,
+      labelOptions = labelOptions(
+        style = list("font-weight" = "normal", padding = "3px 8px"),
+        textsize = "12px",
+        direction = "auto"
+      )
+    ) %>%
+    addScaleBar(
+      position = "bottomleft",
+      options = scaleBarOptions(
+        maxWidth = 100,
+        metric = TRUE,
+        imperial = FALSE,
+        updateWhenIdle = TRUE
+      )
+    ) %>%
+    addLegend(
+      position = "bottomright",
+      pal = pal,
+      values = ~pmin(pmax(percent_change, -50), 50),
+      title = legend_title,
+      opacity = 0.7,
+      labFormat = labelFormat(suffix = "%")
+    )
+
+  if (show_labels) {
+    data_centroids <- suppressWarnings({
+      map_data %>%
+        st_centroid() %>%
+        st_coordinates() %>%
+        as.data.frame()
+    })
+
+    data_centroids$name <- map_data$name
+    data_centroids$label_value <- percent_display
+
+    map <- map %>%
+      addLabelOnlyMarkers(
+        data = data_centroids,
+        lng = ~X,
+        lat = ~Y,
+        label = ~name,
+        labelOptions = labelOptions(
+          noHide = TRUE,
+          direction = "center",
+          textOnly = TRUE,
+          style = list(
+            "color" = "#333",
+            "font-family" = "Arial, sans-serif",
+            "font-size" = "10px",
+            "font-weight" = "600",
+            "text-shadow" = "1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white, 0px 0px 3px white"
+          )
+        )
+      ) %>%
+      addLabelOnlyMarkers(
+        data = data_centroids %>% mutate(Y = Y - 0.08),
+        lng = ~X,
+        lat = ~Y,
+        label = ~label_value,
+        labelOptions = labelOptions(
+          noHide = TRUE,
+          direction = "center",
+          textOnly = TRUE,
+          style = list(
+            "color" = "black",
+            "font-family" = "Arial, sans-serif",
+            "font-size" = "11px",
+            "font-weight" = "bold",
+            "text-shadow" = "1px 1px 3px white, -1px -1px 3px white, 1px -1px 3px white, -1px 1px 3px white, 0px 0px 4px white"
+          )
+        )
+      )
+  }
+
+  north_arrow_html <- htmltools::tags$div(
+    style = "position: absolute; top: 10px; right: 10px; z-index: 1000;",
+    htmltools::tags$div(
+      style = "background: white; padding: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);",
+      htmltools::HTML("
+        <svg width='30' height='40' viewBox='0 0 30 40'>
+          <polygon points='15,2 20,15 15,12 10,15' fill='black'/>
+          <polygon points='15,12 20,15 15,38 10,15' fill='#999'/>
+          <text x='15' y='35' text-anchor='middle' font-size='12' font-weight='bold'>N</text>
+        </svg>
+      ")
+    )
+  )
+
+  map %>%
+    htmlwidgets::prependContent(north_arrow_html)
+}
+
 # Save map as static professional image
 save_map_png <- function(map_data, filename,
                         indicator_name,
@@ -182,7 +337,12 @@ save_map_png <- function(map_data, filename,
                         year,
                         period_label = NULL,
                         width = 12,
-                        height = 10) {
+                        height = 10,
+                        legend_title = "Percent change (actual vs expected)",
+                        caption_text = paste(
+                          "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected).",
+                          "\nValues capped at ±50%. Diagonal stripes = insufficient data."
+                        )) {
 
   require(ggplot2)
   require(sf)
@@ -210,7 +370,7 @@ save_map_png <- function(map_data, filename,
       limits = c(-50, 50),
       breaks = seq(-50, 50, 10),
       labels = function(x) paste0(ifelse(x > 0, "+", ""), x, "%"),
-      name = "Percent change (actual vs expected)",
+      name = legend_title,
       guide = guide_colorbar(
         barwidth = 20,
         barheight = 0.8,
@@ -258,10 +418,7 @@ save_map_png <- function(map_data, filename,
     labs(
       title = title_text,
       subtitle = subtitle_text,
-      caption = paste(
-        "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected).",
-        "\nValues capped at ±50%. Diagonal stripes = insufficient data."
-      )
+      caption = caption_text
     ) +
     # Clean theme
     theme_void() +

@@ -47,6 +47,7 @@ create_app_sidebar <- function() {
       dash_menu_item("Disruption Map", tabName = "map", icon = icon("map")),
       dash_menu_item("Heatmap", tabName = "heatmap", icon = icon("th")),
       dash_menu_item("Summary Statistics", tabName = "stats", icon = icon("chart-bar")),
+      dash_menu_item("Year-on-year change", tabName = "yoy_map", icon = icon("chart-line")),
       dash_menu_item("About", tabName = "about", icon = icon("info-circle"))
     )
   )
@@ -183,6 +184,156 @@ create_map_tab <- function(db_connected = FALSE) {
   tab
 }
 
+create_yoy_tab <- function() {
+  tabItem(
+    tabName = "yoy_map",
+    fluidRow(
+      box(
+        title = "Data Selection",
+        status = "primary",
+        solidHeader = TRUE,
+        width = 12,
+        collapsible = TRUE,
+        collapsed = FALSE,
+        fluidRow(
+          column(
+            3,
+            selectInput(
+              "yoy_country",
+              "Select Country:",
+              choices = NULL,
+              selected = NULL
+            )
+          ),
+          column(
+            3,
+            selectInput(
+              "yoy_admin_level",
+              "Geographic level:",
+              choices = c(
+                "Admin level 2 – State/Province" = "2",
+                "Admin level 3 – District/LGA" = "3"
+              ),
+              selected = "2"
+            )
+          ),
+          column(
+            3,
+            fileInput(
+              "yoy_file",
+              "Upload Adjusted CSV:",
+              accept = c(".csv")
+            ),
+            helpText(
+              tags$div(
+                style = "margin-top: -10px; padding: 8px; background: #f8f9fa; border-left: 3px solid #3c8dbc; font-size: 11px;",
+                tags$p(
+                  style = "margin: 0 0 5px 0; font-weight: 600;",
+                  "Where to find your CSV:"
+                ),
+                tags$ol(
+                  style = "margin: 5px 0 5px 0; padding-left: 18px;",
+                  tags$li("Go to your country instance"),
+                  tags$li("Navigate to: ", tags$strong("modules > M2 Data quality adjustments > Files")),
+                  tags$li(
+                    "Download: ",
+                    tags$code(style = "font-size: 10px;", "M2_adjusted_data_admin_area.csv")
+                  )
+                ),
+                tags$p(
+                  style = "margin: 5px 0 0 0; font-size: 10px; color: #666; font-style: italic;",
+                  "Large files may take 10-30 seconds to process."
+                )
+              )
+            )
+          ),
+          column(
+            3,
+            selectInput(
+              "yoy_indicator",
+              "Select Indicator:",
+              choices = NULL,
+              selected = NULL
+            )
+          )
+        ),
+        fluidRow(
+          column(
+            3,
+            selectInput(
+              "yoy_admin_column",
+              "Match CSV column:",
+              choices = NULL,
+              selected = NULL
+            )
+          ),
+          column(
+            3,
+            selectInput(
+              "yoy_volume_metric",
+              "Service utilization:",
+              choices = c(
+                "Not adjusted" = "count_final_none",
+                "Adjusted for outliers" = "count_final_outliers",
+                "Adjusted for completeness" = "count_final_completeness",
+                "Adjusted for completeness and outliers" = "count_final_both"
+              ),
+              selected = "count_final_both"
+            )
+          ),
+          column(
+            3,
+            checkboxInput(
+              "yoy_show_labels",
+              "Show Values on Map",
+              value = TRUE
+            )
+          ),
+          column(
+            3,
+            uiOutput("yoy_period_display")
+          )
+        )
+      )
+    ),
+    fluidRow(
+      box(
+        title = "Year-on-year Change Map",
+        status = "info",
+        solidHeader = TRUE,
+        width = 12,
+        height = "750px",
+        fluidRow(
+          column(
+            8,
+            tags$div(
+              style = "background: #f4f6f9; padding: 12px 15px; border-radius: 4px; margin-bottom: 10px; border-left: 4px solid #00a65a;",
+              tags$div(
+                style = "font-size: 11px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;",
+                "Current Indicator"
+              ),
+              tags$div(
+                style = "font-size: 16px; color: #333; font-weight: 600;",
+                uiOutput("yoy_indicator_display", inline = TRUE)
+              )
+            )
+          ),
+          column(
+            4,
+            downloadButton(
+              "download_yoy_map",
+              "Download Map as PNG",
+              class = "btn-primary pull-right",
+              style = "margin-bottom: 10px; margin-top: 15px;"
+            )
+          )
+        ),
+        leafletOutput("yoy_map", height = "600px")
+      )
+    )
+  )
+}
+
 # Create statistics tab
 create_stats_tab <- function() {
   tabItem(
@@ -198,6 +349,10 @@ create_stats_tab <- function() {
           tags$div(
             style = "font-size: 11px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;",
             "Current Indicator"
+          ),
+          tags$div(
+            style = "font-size: 12px; color: #555; margin-top: 6px;",
+            "Configure the Disruption Map first; the statistics below reuse the same indicator and filtered dataset."
           ),
           tags$div(
             style = "font-size: 16px; color: #333; font-weight: 600;",
@@ -242,6 +397,10 @@ create_heatmap_tab <- function() {
           tags$div(
             style = "font-size: 11px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;",
             "Service Disruptions by District and Indicator"
+          ),
+          tags$div(
+            style = "font-size: 12px; color: #555; margin-top: 6px;",
+            "Start on the Disruption Map tab; once data is loaded, revisit the Heatmap to view every indicator at once."
           ),
           tags$div(
             style = "font-size: 14px; color: #333; font-weight: 600;",
@@ -324,47 +483,38 @@ create_about_tab <- function() {
         status = "info",
         solidHeader = TRUE,
         width = 12,
-        h4("Disruption Mapping"),
-        p("This interactive tool visualizes disruptions in health service delivery by comparing
-          actual service counts against expected values based on historical trends. All mapping
-          is disaggregated by individual indicator."),
+        h4("Map Modes"),
+        tags$ul(
+          tags$li(tags$b("Disruption Map:"), " Compares actual counts to modelled expectations. Categories flag disruption, stability, or surplus relative to the expected baseline."),
+          tags$li(tags$b("Year-on-year change:"), " Calculates percent change in service volumes between the latest six complete months and the equivalent months one year earlier. You can choose which adjusted volume to display (not adjusted, outliers removed, completeness adjusted, or both corrections).")
+        ),
 
         h4("Color Scale"),
-        p("The disruption map uses a continuous color gradient that smoothly represents the full numeric range of disruption percentages:"),
+        p("Both maps use the same continuous gradient, capped at ±50% for readability:"),
         tags$ul(
-          tags$li(tags$b("Red:"), " Indicates disruption (actual services below expected). Deeper red indicates greater disruption."),
-          tags$li(tags$b("Yellow:"), " Indicates stable service levels (actual within ±3% of expected)."),
-          tags$li(tags$b("Green:"), " Indicates surplus (actual services above expected). Deeper green indicates greater surplus."),
-          tags$li(tags$b("Blue:"), " Indicates insufficient data to calculate disruption.")
+          tags$li(tags$b("Deep red:"), " Large decrease in services (negative percent change)."),
+          tags$li(tags$b("Yellow:"), " Stable performance (within ±3%)."),
+          tags$li(tags$b("Deep green:"), " Large increase in services (positive percent change)."),
+          tags$li(tags$b("Grey hatch / n/a:"), " Insufficient data for the selected period or a zero baseline.")
         ),
-        p("The scale ranges from -50% to +50%, with values capped at these extremes for clarity."),
-
-        tags$div(
-          style = "margin: 15px 0;",
-          tags$b("Show Values on Map:"),
-          " Toggle this option to display the actual percent change value on each area for quick reference."
-        ),
+        p("Enable ", tags$b("Show Values on Map"), " to print the percent change directly on each area."),
 
         h4("Data Requirements"),
-        p("The disruption analysis CSV file should contain:"),
+        p("Upload one of the supported CSV extracts:"),
         tags$ul(
-          tags$li(tags$code("admin_area_2"), " - Administrative area name (required for level 2)"),
-          tags$li(tags$code("admin_area_3"), " - Administrative area name (required for level 3, in addition to admin_area_2)"),
-          tags$li(tags$code("indicator_common_id"), " - Indicator identifier"),
-          tags$li(tags$code("period_id"), " or ", tags$code("year"), " - Time period"),
-          tags$li(tags$code("count_sum"), " - Actual count"),
-          tags$li(tags$code("count_expect_sum"), " - Expected count based on historical trends")
+          tags$li(tags$b("Disruption map:"), " `M3_disruption_analysis_admin_area_2.csv` or `_3.csv` with columns ", tags$code("admin_area_2"), ", ", tags$code("admin_area_3"), ", ", tags$code("indicator_common_id"), ", ", tags$code("period_id/year"), ", ", tags$code("count_sum"), ", ", tags$code("count_expect_sum"), " plus the pre-computed disruption metrics."),
+          tags$li(tags$b("Year-on-year map:"), " `M2_adjusted_data_admin_area.csv` with the relevant `admin_area_*` columns, ", tags$code("indicator_common_id"), ", ", tags$code("period_id"), " and the four volume measures: ", tags$code("count_final_none"), ", ", tags$code("count_final_outliers"), ", ", tags$code("count_final_completeness"), ", ", tags$code("count_final_both"), ".")
         ),
+        p("After upload, choose which geography column best matches the boundary file (for example `admin_area_2`, `admin_area_3`, or another admin field)."),
 
         h4("How to Use"),
         tags$ol(
-          tags$li("Select a country from the dropdown"),
-          tags$li("Choose administrative level (2 for states/provinces, 3 for districts/LGAs)"),
-          tags$li("Upload a disruption analysis CSV file or use database (if configured)"),
-          tags$li("Select year and indicator to map"),
-          tags$li("Toggle 'Show Values on Map' to display percent change labels on areas"),
-          tags$li("Explore the map (hover for details, zoom and pan), heatmap, and statistics tabs"),
-          tags$li("Download maps and heatmaps as high-resolution PNG images using the download buttons")
+          tags$li("Select a country and administrative level to load matching boundaries."),
+          tags$li("Upload the corresponding CSV (or connect to the database where available)."),
+          tags$li("Pick the indicator and, for the year-on-year tab, the service utilization measure and geography column."),
+          tags$li("Use the map toggle to show or hide labels, hover for detailed tooltips, and pan/zoom as needed."),
+          tags$li("Switch to the heatmap or statistics tabs for complementary summaries."),
+          tags$li("Download any map or heatmap as a high-resolution PNG using the buttons provided.")
         )
       )
     )

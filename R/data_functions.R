@@ -5,10 +5,210 @@
 # Get available countries from geojson files
 get_available_countries <- function() {
   geojson_files <- list.files("data/geojson", pattern = "*_backbone.geojson", full.names = FALSE)
-  countries <- gsub("_backbone.geojson", "", geojson_files)
-  # Clean up country names for display
-  country_names <- tools::toTitleCase(gsub("([0-9])", " \\1", countries))
-  setNames(countries, country_names)
+  available_codes <- gsub("_backbone.geojson", "", geojson_files)
+
+  allowlist <- c(
+    cameroon = "Cameroon",
+    ghana = "Ghana",
+    ethiopia = "Ethiopia",
+    guinea = "Guinea",
+    nigeria = "Nigeria",
+    haiti = "Haiti",
+    liberia = "Liberia",
+    sierraleone = "Sierra Leone",
+    senegal = "Senegal",
+    somalia = "Somalia",
+    somaliland = "Somaliland"
+  )
+
+  present_codes <- names(allowlist)[names(allowlist) %in% available_codes]
+  if (length(present_codes) == 0) {
+    return(character(0))
+  }
+
+  setNames(present_codes, allowlist[present_codes])
+}
+
+# Convert YYYYMM period identifiers to Date objects (first day of month)
+period_id_to_date <- function(period_id) {
+  period_int <- suppressWarnings(as.integer(period_id))
+  period_str <- sprintf("%06d", period_int)
+
+  year <- suppressWarnings(as.integer(substr(period_str, 1, 4)))
+  month <- suppressWarnings(as.integer(substr(period_str, 5, 6)))
+
+  valid <- !is.na(year) & !is.na(month) & month >= 1 & month <= 12
+  dates <- as.Date(rep(NA_character_, length(period_id)))
+  dates[valid] <- as.Date(
+    paste(year[valid], sprintf("%02d", month[valid]), "01", sep = "-"),
+    format = "%Y-%m-%d"
+  )
+  dates
+}
+
+# Load pre-aggregated M2 year-on-year dataset
+load_yoy_data <- function(file_path) {
+  data <- data.table::fread(file_path, data.table = FALSE)
+
+  required_cols <- c(
+    "indicator_common_id",
+    "period_id",
+    "count_final_none",
+    "count_final_outliers",
+    "count_final_completeness",
+    "count_final_both"
+  )
+
+  missing_cols <- setdiff(required_cols, names(data))
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns in file: ", paste(missing_cols, collapse = ", "))
+  }
+
+  data <- data %>%
+    mutate(
+      period_id = suppressWarnings(as.integer(period_id)),
+      period_date = period_id_to_date(period_id)
+    )
+
+  admin_columns <- names(data)[grepl("^admin_area", names(data))]
+  admin_columns <- admin_columns[
+    vapply(admin_columns, function(col) {
+      any(!is.na(data[[col]]) & trimws(as.character(data[[col]])) != "")
+    }, logical(1))
+  ]
+
+  available_levels <- character(0)
+  if ("admin_area_2" %in% admin_columns) {
+    available_levels <- c(available_levels, "2")
+  }
+  if ("admin_area_3" %in% admin_columns) {
+    available_levels <- c(available_levels, "3")
+  }
+
+  list(
+    data = data,
+    available_levels = available_levels,
+    admin_columns = admin_columns
+  )
+}
+
+# Calculate six-month year-on-year summary for selected indicator/admin level
+calculate_yoy_summary <- function(data, admin_level, admin_column, indicator_id, volume_metric) {
+  valid_metrics <- c(
+    "count_final_none",
+    "count_final_outliers",
+    "count_final_completeness",
+    "count_final_both"
+  )
+
+  if (!volume_metric %in% valid_metrics) {
+    stop("Invalid volume metric: ", volume_metric)
+  }
+
+  admin_col <- admin_column
+  if (is.null(admin_col) || length(admin_col) != 1) {
+    stop("An admin column must be specified for year-on-year calculations.")
+  }
+  if (!admin_col %in% names(data)) {
+    stop("Admin column not found in dataset: ", admin_col)
+  }
+
+  indicator_data <- data %>%
+    filter(
+      indicator_common_id == indicator_id,
+      !is.na(.data[[admin_col]]),
+      .data[[admin_col]] != ""
+    )
+
+  if (nrow(indicator_data) == 0) {
+    empty_summary <- tibble::tibble(
+      admin_area = character(0),
+      current_total = numeric(0),
+      previous_total = numeric(0),
+      percent_change = numeric(0),
+      absolute_change = numeric(0),
+      total_actual = numeric(0),
+      total_expected = numeric(0)
+    )
+    return(list(
+      summary = empty_summary,
+      current_period_label = "Latest six months",
+      previous_period_label = "Same months previous year"
+    ))
+  }
+
+  periods <- sort(unique(indicator_data$period_id[!is.na(indicator_data$period_id)]))
+  if (length(periods) == 0) {
+    empty_summary <- tibble::tibble(
+      admin_area = character(0),
+      current_total = numeric(0),
+      previous_total = numeric(0),
+      percent_change = numeric(0),
+      absolute_change = numeric(0),
+      total_actual = numeric(0),
+      total_expected = numeric(0)
+    )
+    return(list(
+      summary = empty_summary,
+      current_period_label = "Latest six months",
+      previous_period_label = "Same months previous year"
+    ))
+  }
+
+  window_size <- min(6, length(periods))
+  current_window <- tail(periods, n = window_size)
+  previous_window <- current_window - 100
+
+  current_dates <- period_id_to_date(current_window)
+  previous_dates <- period_id_to_date(previous_window)
+
+  current_summary <- indicator_data %>%
+    filter(period_id %in% current_window) %>%
+    group_by(across(all_of(admin_col))) %>%
+    summarise(
+      current_total = sum(.data[[volume_metric]], na.rm = TRUE),
+      .groups = "drop"
+    )
+
+  previous_summary <- indicator_data %>%
+    filter(period_id %in% previous_window) %>%
+    group_by(across(all_of(admin_col))) %>%
+    summarise(
+      previous_total = sum(.data[[volume_metric]], na.rm = TRUE),
+      .groups = "drop"
+    )
+
+  summary <- full_join(current_summary, previous_summary, by = admin_col) %>%
+    mutate(
+      current_total = replace_na(current_total, 0),
+      previous_total = replace_na(previous_total, 0),
+      percent_change = case_when(
+        previous_total == 0 & current_total == 0 ~ 0,
+        previous_total == 0 ~ NA_real_,
+        TRUE ~ (current_total - previous_total) / previous_total * 100
+      ),
+      absolute_change = current_total - previous_total,
+      total_actual = current_total,
+      total_expected = previous_total
+    ) %>%
+    rename(admin_area = !!admin_col) %>%
+    arrange(admin_area)
+
+  current_label <- format_period_range(current_dates)
+  previous_label <- format_period_range(previous_dates)
+
+  if (is.null(current_label)) {
+    current_label <- "Latest six months"
+  }
+  if (is.null(previous_label)) {
+    previous_label <- "Same months previous year"
+  }
+
+  list(
+    summary = summary,
+    current_period_label = current_label,
+    previous_period_label = previous_label
+  )
 }
 
 # Calculate disruption category based on percent change
@@ -44,6 +244,113 @@ calculate_heatmap_category <- function(percent_change, total_expected) {
     percent_change <= 5 ~ "Stable",
     percent_change < 10 ~ "Surplus 5-10%",
     TRUE ~ "Surplus >10%"
+  )
+}
+
+# Helper: return friendly label for a vector of Date objects (first of month)
+format_period_range <- function(dates) {
+  if (length(dates) == 0 || all(is.na(dates))) {
+    return(NULL)
+  }
+
+  month_names <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+  dates <- sort(unique(stats::na.omit(dates)))
+  start_date <- min(dates)
+  end_date <- max(dates)
+
+  start_year <- as.integer(format(start_date, "%Y"))
+  end_year <- as.integer(format(end_date, "%Y"))
+  start_month <- as.integer(format(start_date, "%m"))
+  end_month <- as.integer(format(end_date, "%m"))
+
+  if (start_year == end_year) {
+    if (start_month == end_month) {
+      return(paste(month_names[start_month], start_year))
+    }
+    if (start_month == 1 && end_month == 12) {
+      return(paste("Jan-Dec", start_year))
+    }
+    return(paste0(month_names[start_month], "-",
+                  month_names[end_month], " ", start_year))
+  }
+
+  paste(
+    paste(month_names[start_month], start_year),
+    paste(month_names[end_month], end_year),
+    sep = " - "
+  )
+}
+
+# Helper: concise label when only year column is available
+format_year_range <- function(data) {
+  if (!("year" %in% names(data)) || nrow(data) == 0) {
+    return(NULL)
+  }
+  years <- sort(unique(stats::na.omit(as.integer(data$year))))
+  if (length(years) == 0) {
+    return(NULL)
+  }
+  if (length(years) == 1) {
+    return(as.character(years))
+  }
+  paste0(min(years), "-", max(years))
+}
+
+# Filter data to the most recent `months` months (based on period_id) and
+# return both filtered data and a user-friendly period label.
+prepare_period_window <- function(data, months = NULL) {
+  if (is.null(data) || nrow(data) == 0) {
+    return(list(data = data, label = NULL))
+  }
+
+  if (!("period_id" %in% names(data))) {
+    return(list(data = data, label = format_year_range(data)))
+  }
+
+  period_int <- suppressWarnings(as.integer(data$period_id))
+  if (all(is.na(period_int))) {
+    return(list(data = data, label = format_year_range(data)))
+  }
+
+  # Build date column (YYYYMM -> first day of month)
+  period_str <- sprintf("%06d", period_int)
+  period_year <- suppressWarnings(as.integer(substr(period_str, 1, 4)))
+  period_month <- suppressWarnings(as.integer(substr(period_str, 5, 6)))
+
+  valid_idx <- !is.na(period_year) & !is.na(period_month)
+  if (!any(valid_idx)) {
+    return(list(data = data, label = format_year_range(data)))
+  }
+
+  period_dates <- as.Date(paste(period_year[valid_idx],
+                                sprintf("%02d", period_month[valid_idx]),
+                                "01", sep = "-"))
+
+  unique_dates <- sort(unique(period_dates))
+
+  if (!is.null(months) && months > 0) {
+    keep_dates <- tail(unique_dates, n = min(months, length(unique_dates)))
+  } else {
+    keep_dates <- unique_dates
+  }
+
+  if (length(keep_dates) == 0) {
+    return(list(data = data[valid_idx, , drop = FALSE],
+                label = format_year_range(data)))
+  }
+
+  # Indices of rows to keep (match by year/month)
+  keep_mask <- valid_idx & (as.Date(paste(period_year,
+                                          sprintf("%02d", period_month),
+                                          "01", sep = "-")) %in% keep_dates)
+
+  filtered_data <- data[keep_mask, , drop = FALSE]
+
+  list(
+    data = filtered_data,
+    label = format_period_range(keep_dates)
   )
 }
 
