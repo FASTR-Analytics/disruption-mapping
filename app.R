@@ -556,16 +556,65 @@ server <- function(input, output, session) {
     rv$yoy_admin_column <- input$yoy_admin_column
   })
 
+  # Helper reactive: period window for disruption map
+  disruption_window <- reactive({
+    req(rv$disruption_data, input$year, input$indicator, input$period_window)
+
+    year_data <- rv$disruption_data %>%
+      filter(
+        year == as.numeric(input$year),
+        indicator_common_id == input$indicator
+      )
+
+    # Determine number of months to include
+    months_to_include <- if(input$period_window == "all") {
+      NULL  # NULL means all months
+    } else {
+      as.numeric(input$period_window)
+    }
+
+    window <- prepare_period_window(year_data, months = months_to_include)
+    if (is.null(window$label)) {
+      window$label <- as.character(input$year)
+    }
+    window
+  })
+
   # Calculate disruption summary for selected indicator
   disruption_summary <- reactive({
     req(rv$disruption_data, input$year, input$indicator, rv$data_admin_level)
 
-    calculate_disruption_summary(
-      data = rv$disruption_data,
-      year_val = input$year,
-      indicator_id = input$indicator,
-      admin_level = rv$data_admin_level
-    )
+    window <- disruption_window()
+    filtered_data <- window$data
+
+    if (is.null(filtered_data) || nrow(filtered_data) == 0) {
+      return(NULL)
+    }
+
+    # Determine which admin column to use
+    admin_col <- if(rv$data_admin_level == "3") "admin_area_3" else "admin_area_2"
+
+    # Calculate summary by admin area using filtered data
+    summary <- filtered_data %>%
+      group_by(across(all_of(admin_col))) %>%
+      summarise(
+        total_actual = sum(count_sum, na.rm = TRUE),
+        total_expected = sum(count_expect_sum, na.rm = TRUE),
+        .groups = "drop"
+      )
+
+    # Rename the grouping column to a standard name
+    names(summary)[1] <- "admin_area"
+
+    # Calculate percent change and category
+    summary <- summary %>%
+      mutate(
+        percent_change = (total_actual - total_expected) / total_expected * 100,
+        category = calculate_category(percent_change, total_expected)
+      ) %>%
+      mutate(category = factor(category, levels = all_categories))
+
+    return(summary)
   })
 
   # Create map data by joining geo and disruption data
@@ -645,18 +694,10 @@ server <- function(input, output, session) {
 
     indicator_text <- get_indicator_display_name(input$indicator)
 
-    indicator_data <- rv$disruption_data %>%
-      filter(
-        year == as.numeric(input$year),
-        indicator_common_id == input$indicator
-      )
+    # Use the disruption_window to get the period label
+    window <- disruption_window()
+    period_label <- window$label
 
-    period_info <- prepare_period_window(indicator_data, months = NULL)
-    period_label <- period_info$label
-
-    if (is.null(period_label)) {
-      period_label <- format_year_range(indicator_data)
-    }
     if (is.null(period_label)) {
       period_label <- as.character(input$year)
     }
@@ -720,18 +761,10 @@ server <- function(input, output, session) {
 
     indicator_text <- get_indicator_display_name(input$indicator)
 
-    indicator_data <- rv$disruption_data %>%
-      filter(
-        year == as.numeric(input$year),
-        indicator_common_id == input$indicator
-      )
+    # Use the disruption_window to get the period label
+    window <- disruption_window()
+    period_label <- window$label
 
-    period_info <- prepare_period_window(indicator_data, months = NULL)
-    period_label <- period_info$label
-
-    if (is.null(period_label)) {
-      period_label <- format_year_range(indicator_data)
-    }
     if (is.null(period_label)) {
       period_label <- as.character(input$year)
     }
@@ -1135,17 +1168,9 @@ server <- function(input, output, session) {
       # Get country name
       country_name <- tools::toTitleCase(gsub("([0-9])", " \\1", input$country))
 
-      indicator_period <- rv$disruption_data %>%
-        filter(
-          year == as.numeric(input$year),
-          indicator_common_id == input$indicator
-        )
-
-      period_info <- prepare_period_window(indicator_period, months = NULL)
-      period_label <- period_info$label
-      if (is.null(period_label)) {
-        period_label <- format_year_range(indicator_period)
-      }
+      # Use the disruption_window to get the period label
+      window <- disruption_window()
+      period_label <- window$label
       if (is.null(period_label)) {
         period_label <- as.character(input$year)
       }

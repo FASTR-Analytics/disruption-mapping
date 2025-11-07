@@ -124,6 +124,17 @@ create_map_tab <- function(db_connected = FALSE) {
         ),
 
         fluidRow(
+          column(3,
+            selectInput("period_window", "Time Period:",
+                       choices = c("All months (full year)" = "all",
+                                 "Last 6 months" = "6",
+                                 "Last 3 months" = "3"),
+                       selected = "all")
+          ),
+          column(9)
+        ),
+
+        fluidRow(
           column(4,
             selectInput("indicator", "Select Indicator:",
                        choices = NULL,
