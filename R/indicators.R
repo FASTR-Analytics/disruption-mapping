@@ -43,7 +43,7 @@ indicator_labels <- data.frame(
     "u5_deaths", "u5_nutprog",
     "U5_LLIN",
     "underweight_newborn",
-    "vaccins_completes", "vaccins_completes_fem", "vaccins_completes_mal",
+    "vaccins_completes", "vaccins_completes_female", "vaccins_completes_males",
     "vitA", "vitaminA"
   ),
   indicator_name = c(
@@ -119,8 +119,8 @@ indicator_labels <- data.frame(
     "Children <5 yrs who received LLIN",
     "Low birth weight newborns",
     "Fully vaccinated children (0-11 months)",
-    "Fully vaccinated girls (0-11 months)",
-    "Fully vaccinated boys (0-11 months)",
+    "Fully vaccinated females (0-11 months)",
+    "Fully vaccinated males (0-11 months)",
     "Children 6-59 months receiving two vitamin A doses",
     "Vitamin A given"
   ),
