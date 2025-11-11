@@ -611,6 +611,28 @@ server <- function(input, output, session) {
     window
   })
 
+  # Helper reactive: period window for faceted map (multiple indicators)
+  faceted_window <- reactive({
+    req(rv$disruption_data, input$year, input$period_window)
+
+    # Filter by year only, NOT by indicator (allows multiple indicators)
+    year_data <- rv$disruption_data %>%
+      filter(year == as.numeric(input$year))
+
+    # Determine number of months to include
+    months_to_include <- if(input$period_window == "all") {
+      NULL  # NULL means all months
+    } else {
+      as.numeric(input$period_window)
+    }
+
+    window <- prepare_period_window(year_data, months = months_to_include)
+    if (is.null(window$label)) {
+      window$label <- as.character(input$year)
+    }
+    window
+  })
+
   # Calculate disruption summary for selected indicator
   disruption_summary <- reactive({
     req(rv$disruption_data, input$year, input$indicator, rv$data_admin_level)
@@ -1003,7 +1025,7 @@ server <- function(input, output, session) {
 
   # Faceted map subtitle
   output$faceted_map_subtitle <- renderUI({
-    window <- disruption_window()
+    window <- faceted_window()
     period_label <- window$label
     if (is.null(period_label)) {
       period_label <- as.character(input$year)
@@ -1030,8 +1052,8 @@ server <- function(input, output, session) {
     # Require at least one indicator
     req(length(selected_indicators) > 0)
 
-    # Get filtered data from the disruption_window
-    window <- disruption_window()
+    # Get filtered data from the faceted_window (includes ALL indicators)
+    window <- faceted_window()
     filtered_data <- window$data
 
     validate(
@@ -1254,7 +1276,7 @@ server <- function(input, output, session) {
       }
 
       # Get filtered data
-      window <- disruption_window()
+      window <- faceted_window()
       filtered_data <- window$data %>%
         filter(indicator_common_id %in% selected_indicators)
 

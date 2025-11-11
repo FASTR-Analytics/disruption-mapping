@@ -513,6 +513,10 @@ create_faceted_map <- function(geo_data, disruption_data,
   # Continuous gradient matching leaflet
   color_values <- c("#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641")
 
+  # Determine optimal number of columns based on number of indicators
+  n_indicators <- length(selected_indicators)
+  ncols <- if (n_indicators == 1) 1 else if (n_indicators <= 2) 2 else 2
+
   # Create the faceted map
   p <- ggplot(data = map_data_all) +
     geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
@@ -541,8 +545,8 @@ create_faceted_map <- function(geo_data, disruption_data,
       fontface = "bold",
       color = "black"
     ) +
-    # Facet by indicator
-    facet_wrap(~indicator_display, ncol = 2) +
+    # Facet by indicator with dynamic columns
+    facet_wrap(~indicator_display, ncol = ncols) +
     # Clean theme
     theme_void() +
     theme(
