@@ -590,17 +590,17 @@ create_faceted_map <- function(geo_data, disruption_data,
   # Translate text elements
   if (lang == "fr") {
     title_text <- if (!is.null(country_name)) {
-      paste("Perturbations de Services Multi-Indicateurs -", country_name)
+      paste("Perturbations de Services -", country_name)
     } else {
-      "Comparaison Multi-Indicateurs des Perturbations de Services"
+      "Perturbations de Services"
     }
     caption_text <- "Rouge = perturbation (inférieur au prévu), Jaune = stable, Vert = surplus (supérieur au prévu). Valeurs limitées à ±50%."
     year_label <- "Année:"
   } else {
     title_text <- if (!is.null(country_name)) {
-      paste("Multi-Indicator Service Disruption -", country_name)
+      paste("Service Disruption -", country_name)
     } else {
-      "Multi-Indicator Service Disruption Comparison"
+      "Service Disruption"
     }
     caption_text <- "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
     year_label <- "Year:"
