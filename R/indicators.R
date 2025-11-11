@@ -168,7 +168,7 @@ indicator_labels_fr <- data.frame(
     "u5_deaths", "u5_nutprog",
     "U5_LLIN",
     "underweight_newborn",
-    "vaccins_completes", "vaccins_completes_fem", "vaccins_completes_mal",
+    "vaccins_completes", "vaccins_completes_female", "vaccins_completes_males",
     "vitA", "vitaminA"
   ),
   indicator_name = c(
