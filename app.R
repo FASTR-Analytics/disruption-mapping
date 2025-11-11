@@ -201,6 +201,7 @@ server <- function(input, output, session) {
                          selected = current_selection)
     }
 
+    # Update YoY indicator dropdown
     if (!is.null(rv$yoy_data)) {
       yoy_indicators <- rv$yoy_data %>%
         distinct(indicator_common_id) %>%
@@ -217,6 +218,38 @@ server <- function(input, output, session) {
       updateSelectInput(session, "yoy_indicator",
                        choices = yoy_indicator_choices,
                        selected = current_yoy_selection)
+    }
+
+    # Update faceted map indicator dropdowns
+    if (!is.null(rv$disruption_data)) {
+      faceted_indicators <- rv$disruption_data %>%
+        distinct(indicator_common_id) %>%
+        left_join(current_indicator_labels(), by = c("indicator_common_id" = "indicator_id")) %>%
+        arrange(indicator_name)
+
+      faceted_indicator_choices <- setNames(faceted_indicators$indicator_common_id,
+                                           ifelse(is.na(faceted_indicators$indicator_name),
+                                                  faceted_indicators$indicator_common_id,
+                                                  faceted_indicators$indicator_name))
+
+      # Keep current selections
+      current_faceted_1 <- input$faceted_indicator1
+      current_faceted_2 <- input$faceted_indicator2
+      current_faceted_3 <- input$faceted_indicator3
+      current_faceted_4 <- input$faceted_indicator4
+
+      updateSelectInput(session, "faceted_indicator1",
+                       choices = faceted_indicator_choices,
+                       selected = current_faceted_1)
+      updateSelectInput(session, "faceted_indicator2",
+                       choices = faceted_indicator_choices,
+                       selected = current_faceted_2)
+      updateSelectInput(session, "faceted_indicator3",
+                       choices = faceted_indicator_choices,
+                       selected = current_faceted_3)
+      updateSelectInput(session, "faceted_indicator4",
+                       choices = faceted_indicator_choices,
+                       selected = current_faceted_4)
     }
 
     # Show notification
@@ -1031,12 +1064,21 @@ server <- function(input, output, session) {
       period_label <- as.character(input$year)
     }
 
-    tags$span(paste("Comparison across multiple indicators -", period_label))
+    subtitle_text <- if (rv$lang == "fr") {
+      paste("Comparaison multi-indicateurs -", period_label)
+    } else {
+      paste("Comparison across multiple indicators -", period_label)
+    }
+
+    tags$span(subtitle_text)
   })
 
   # Render faceted map plot
   output$faceted_map_plot <- renderPlot({
     req(rv$geo_data, rv$disruption_data, input$year)
+
+    # Add language as dependency to trigger re-render
+    current_lang <- rv$lang
 
     # Get selected indicators
     selected_indicators <- c(
@@ -1076,7 +1118,8 @@ server <- function(input, output, session) {
       year = input$year,
       period_label = window$label,
       country_name = country_name,
-      admin_level = rv$data_admin_level
+      admin_level = rv$data_admin_level,
+      lang = rv$lang
     )
   })
 
@@ -1298,7 +1341,8 @@ server <- function(input, output, session) {
           year = input$year,
           period_label = window$label,
           country_name = country_name,
-          admin_level = rv$data_admin_level
+          admin_level = rv$data_admin_level,
+          lang = rv$lang
         )
 
         # Save the plot

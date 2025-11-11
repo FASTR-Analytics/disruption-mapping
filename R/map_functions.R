@@ -452,7 +452,8 @@ create_faceted_map <- function(geo_data, disruption_data,
                                year = NULL,
                                period_label = NULL,
                                country_name = NULL,
-                               admin_level = "2") {
+                               admin_level = "2",
+                               lang = "en") {
 
   require(ggplot2)
   require(sf)
@@ -517,6 +518,9 @@ create_faceted_map <- function(geo_data, disruption_data,
   n_indicators <- length(selected_indicators)
   ncols <- if (n_indicators == 1) 1 else if (n_indicators <= 2) 2 else 2
 
+  # Translate legend title
+  legend_title <- if (lang == "fr") "% Changement" else "% Change"
+
   # Create the faceted map
   p <- ggplot(data = map_data_all) +
     geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
@@ -527,7 +531,7 @@ create_faceted_map <- function(geo_data, disruption_data,
       limits = c(-50, 50),
       breaks = seq(-50, 50, 25),
       labels = function(x) paste0(ifelse(x > 0, "+", ""), x, "%"),
-      name = "% Change",
+      name = legend_title,
       guide = guide_colorbar(
         barwidth = 15,
         barheight = 0.8,
@@ -583,23 +587,42 @@ create_faceted_map <- function(geo_data, disruption_data,
       text_cex = 0.8
     )
 
+  # Translate text elements
+  if (lang == "fr") {
+    title_text <- if (!is.null(country_name)) {
+      paste("Perturbations de Services Multi-Indicateurs -", country_name)
+    } else {
+      "Comparaison Multi-Indicateurs des Perturbations de Services"
+    }
+    caption_text <- "Rouge = perturbation (inférieur au prévu), Jaune = stable, Vert = surplus (supérieur au prévu). Valeurs limitées à ±50%."
+    year_label <- "Année:"
+  } else {
+    title_text <- if (!is.null(country_name)) {
+      paste("Multi-Indicator Service Disruption -", country_name)
+    } else {
+      "Multi-Indicator Service Disruption Comparison"
+    }
+    caption_text <- "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
+    year_label <- "Year:"
+  }
+
   # Add title if provided
   if (!is.null(period_label) && !is.null(country_name)) {
     p <- p + labs(
-      title = paste("Multi-Indicator Service Disruption -", country_name),
+      title = title_text,
       subtitle = period_label,
-      caption = "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
+      caption = caption_text
     )
   } else if (!is.null(year)) {
     p <- p + labs(
-      title = "Multi-Indicator Service Disruption Comparison",
-      subtitle = paste("Year:", year),
-      caption = "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
+      title = title_text,
+      subtitle = paste(year_label, year),
+      caption = caption_text
     )
   } else {
     p <- p + labs(
-      title = "Multi-Indicator Service Disruption Comparison",
-      caption = "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
+      title = title_text,
+      caption = caption_text
     )
   }
 
