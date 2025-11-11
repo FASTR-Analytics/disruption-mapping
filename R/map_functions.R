@@ -547,6 +547,27 @@ create_faceted_map <- function(geo_data, disruption_data,
     ) +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
+    # North arrow
+    annotation_north_arrow(
+      location = "tr",
+      which_north = "true",
+      pad_x = unit(0.3, "cm"),
+      pad_y = unit(0.3, "cm"),
+      height = unit(0.8, "cm"),
+      width = unit(0.8, "cm"),
+      style = north_arrow_fancy_orienteering(
+        fill = c("grey40", "white"),
+        line_col = "grey20"
+      )
+    ) +
+    # Scale bar
+    annotation_scale(
+      location = "bl",
+      width_hint = 0.25,
+      style = "ticks",
+      line_width = 0.8,
+      text_cex = 0.7
+    ) +
     # Clean theme
     theme_void() +
     theme(
