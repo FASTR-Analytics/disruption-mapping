@@ -778,6 +778,9 @@ server <- function(input, output, session) {
   output$current_indicator_display <- renderUI({
     req(input$indicator)
 
+    # Add language as dependency to trigger re-render
+    current_lang <- rv$lang
+
     indicator_text <- get_indicator_display_name(input$indicator)
 
     # Use the disruption_window to get the period label
@@ -801,6 +804,9 @@ server <- function(input, output, session) {
 
   output$yoy_indicator_display <- renderUI({
     req(input$yoy_indicator, input$yoy_volume_metric)
+
+    # Add language as dependency to trigger re-render
+    current_lang <- rv$lang
 
     indicator_text <- get_indicator_display_name(input$yoy_indicator)
 
@@ -844,6 +850,9 @@ server <- function(input, output, session) {
   # Display current indicator name on stats tab
   output$current_indicator_display_stats <- renderUI({
     req(input$indicator)
+
+    # Add language as dependency to trigger re-render
+    current_lang <- rv$lang
 
     indicator_text <- get_indicator_display_name(input$indicator)
 
