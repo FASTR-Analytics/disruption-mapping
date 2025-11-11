@@ -444,3 +444,138 @@ save_map_png <- function(map_data, filename,
 
   return(filename)
 }
+
+# Create faceted map showing multiple indicators
+create_faceted_map <- function(geo_data, disruption_data,
+                               selected_indicators,
+                               indicator_labels_df,
+                               year = NULL,
+                               period_label = NULL,
+                               country_name = NULL,
+                               admin_level = "2") {
+
+  require(ggplot2)
+  require(sf)
+  require(dplyr)
+  require(tidyr)
+
+  # Filter for selected indicators
+  selected_indicators <- selected_indicators[!is.na(selected_indicators) & selected_indicators != ""]
+
+  if (length(selected_indicators) == 0) {
+    stop("No indicators selected")
+  }
+
+  # Determine admin column
+  admin_col <- if(admin_level == "3") "admin_area_3" else "admin_area_2"
+
+  # Calculate summary for all selected indicators
+  summary_data <- disruption_data %>%
+    filter(indicator_common_id %in% selected_indicators) %>%
+    group_by(across(all_of(admin_col)), indicator_common_id) %>%
+    summarise(
+      total_actual = sum(count_sum, na.rm = TRUE),
+      total_expected = sum(count_expect_sum, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      percent_change = (total_actual - total_expected) / total_expected * 100
+    )
+
+  names(summary_data)[1] <- "admin_area"
+
+  # Join with indicator labels
+  summary_data <- summary_data %>%
+    left_join(indicator_labels_df, by = c("indicator_common_id" = "indicator_id")) %>%
+    mutate(
+      indicator_display = coalesce(indicator_name, indicator_common_id)
+    )
+
+  # Create map data by joining with geography for each indicator
+  map_data_list <- lapply(selected_indicators, function(ind) {
+    ind_summary <- summary_data %>% filter(indicator_common_id == ind)
+    geo_data %>%
+      left_join(ind_summary, by = c("name" = "admin_area")) %>%
+      mutate(
+        indicator_common_id = ind,
+        indicator_display = unique(ind_summary$indicator_display)[1]
+      )
+  })
+
+  # Combine all map data
+  map_data_all <- do.call(rbind, map_data_list)
+
+  # Ensure indicator_display is a factor with correct order
+  map_data_all <- map_data_all %>%
+    mutate(indicator_display = factor(indicator_display,
+                                      levels = unique(indicator_display)))
+
+  # Continuous gradient matching leaflet
+  color_values <- c("#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641")
+
+  # Create the faceted map
+  p <- ggplot(data = map_data_all) +
+    geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
+            color = "white", size = 0.3) +
+    scale_fill_gradientn(
+      colors = color_values,
+      values = scales::rescale(c(-50, -10, 0, 10, 50)),
+      limits = c(-50, 50),
+      breaks = seq(-50, 50, 25),
+      labels = function(x) paste0(ifelse(x > 0, "+", ""), x, "%"),
+      name = "% Change",
+      guide = guide_colorbar(
+        barwidth = 15,
+        barheight = 0.8,
+        title.position = "top",
+        title.hjust = 0.5
+      ),
+      na.value = "#999999"
+    ) +
+    # Add percent values
+    geom_sf_text(
+      aes(label = ifelse(!is.na(percent_change),
+                        paste0(round(percent_change, 0), "%"),
+                        "n/a")),
+      size = 2.5,
+      fontface = "bold",
+      color = "black"
+    ) +
+    # Facet by indicator
+    facet_wrap(~indicator_display, ncol = 2) +
+    # Clean theme
+    theme_void() +
+    theme(
+      plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 5)),
+      plot.subtitle = element_text(size = 12, hjust = 0.5, margin = margin(b = 15)),
+      plot.caption = element_text(size = 8, hjust = 0.5, margin = margin(t = 10), color = "grey40"),
+      legend.position = "bottom",
+      legend.title = element_text(size = 10, face = "bold"),
+      legend.text = element_text(size = 9),
+      strip.text = element_text(size = 11, face = "bold", margin = margin(5, 0, 5, 0)),
+      strip.background = element_rect(fill = "#f0f0f0", color = NA),
+      plot.margin = margin(15, 15, 15, 15)
+    )
+
+  # Add title if provided
+  if (!is.null(period_label) && !is.null(country_name)) {
+    p <- p + labs(
+      title = paste("Multi-Indicator Service Disruption -", country_name),
+      subtitle = period_label,
+      caption = "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
+    )
+  } else if (!is.null(year)) {
+    p <- p + labs(
+      title = "Multi-Indicator Service Disruption Comparison",
+      subtitle = paste("Year:", year),
+      caption = "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
+    )
+  } else {
+    p <- p + labs(
+      title = "Multi-Indicator Service Disruption Comparison",
+      caption = "Red = disruption (below expected), Yellow = stable, Green = surplus (above expected). Values capped at ±50%."
+    )
+  }
+
+  return(p)
+}

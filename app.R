@@ -143,9 +143,10 @@ ui <- dashboardPage(
     # All tabs from ui_components.R
     tabItems(
       create_map_tab(db_connected),
-      create_yoy_tab(),
+      create_faceted_map_tab(),
       create_heatmap_tab(),
       create_stats_tab(),
+      create_yoy_tab(),
       create_about_tab()
     )
   )
@@ -334,6 +335,21 @@ server <- function(input, output, session) {
                          choices = indicator_choices,
                          selected = indicator_choices[1])
 
+        # Update faceted map indicator dropdowns
+        default_selections <- indicator_choices[1:min(4, length(indicator_choices))]
+        updateSelectInput(session, "faceted_indicator1",
+                         choices = indicator_choices,
+                         selected = default_selections[1])
+        updateSelectInput(session, "faceted_indicator2",
+                         choices = indicator_choices,
+                         selected = if(length(default_selections) >= 2) default_selections[2] else NULL)
+        updateSelectInput(session, "faceted_indicator3",
+                         choices = indicator_choices,
+                         selected = if(length(default_selections) >= 3) default_selections[3] else NULL)
+        updateSelectInput(session, "faceted_indicator4",
+                         choices = indicator_choices,
+                         selected = if(length(default_selections) >= 4) default_selections[4] else NULL)
+
         level_name <- if(input$admin_level == "2") "Admin Level 2" else "Admin Level 3"
         showNotification(paste("Data loaded from database (", level_name, ")"), type = "message")
       } else {
@@ -396,6 +412,21 @@ server <- function(input, output, session) {
         updateSelectInput(session, "indicator",
                          choices = indicator_choices,
                          selected = indicator_choices[1])
+
+        # Update faceted map indicator dropdowns
+        default_selections <- indicator_choices[1:min(4, length(indicator_choices))]
+        updateSelectInput(session, "faceted_indicator1",
+                         choices = indicator_choices,
+                         selected = default_selections[1])
+        updateSelectInput(session, "faceted_indicator2",
+                         choices = indicator_choices,
+                         selected = if(length(default_selections) >= 2) default_selections[2] else NULL)
+        updateSelectInput(session, "faceted_indicator3",
+                         choices = indicator_choices,
+                         selected = if(length(default_selections) >= 3) default_selections[3] else NULL)
+        updateSelectInput(session, "faceted_indicator4",
+                         choices = indicator_choices,
+                         selected = if(length(default_selections) >= 4) default_selections[4] else NULL)
 
         incProgress(0.2, detail = "Complete!")
       })
@@ -970,6 +1001,63 @@ server <- function(input, output, session) {
       )
   })
 
+  # Faceted map subtitle
+  output$faceted_map_subtitle <- renderUI({
+    window <- disruption_window()
+    period_label <- window$label
+    if (is.null(period_label)) {
+      period_label <- as.character(input$year)
+    }
+
+    tags$span(paste("Comparison across multiple indicators -", period_label))
+  })
+
+  # Render faceted map plot
+  output$faceted_map_plot <- renderPlot({
+    req(rv$geo_data, rv$disruption_data, input$year)
+
+    # Get selected indicators
+    selected_indicators <- c(
+      input$faceted_indicator1,
+      input$faceted_indicator2,
+      input$faceted_indicator3,
+      input$faceted_indicator4
+    )
+
+    # Filter out NULL and empty values
+    selected_indicators <- selected_indicators[!is.na(selected_indicators) & selected_indicators != ""]
+
+    # Require at least one indicator
+    req(length(selected_indicators) > 0)
+
+    # Get filtered data from the disruption_window
+    window <- disruption_window()
+    filtered_data <- window$data
+
+    validate(
+      need(nrow(filtered_data) > 0, "No data available for the selected period.")
+    )
+
+    # Filter data for selected indicators only
+    filtered_data <- filtered_data %>%
+      filter(indicator_common_id %in% selected_indicators)
+
+    # Get country name
+    country_name <- tools::toTitleCase(gsub("([0-9])", " \\1", input$country))
+
+    # Create faceted map
+    create_faceted_map(
+      geo_data = rv$geo_data,
+      disruption_data = filtered_data,
+      selected_indicators = selected_indicators,
+      indicator_labels_df = current_indicator_labels(),
+      year = input$year,
+      period_label = window$label,
+      country_name = country_name,
+      admin_level = rv$data_admin_level
+    )
+  })
+
   # Heatmap subtitle
   output$heatmap_subtitle <- renderUI({
     info <- heatmap_window()
@@ -1131,6 +1219,80 @@ server <- function(input, output, session) {
       )
 
       showNotification("Heatmap exported successfully!", type = "message", duration = 3)
+    }
+  )
+
+  # Download faceted map as PNG
+  output$download_faceted_map <- downloadHandler(
+    filename = function() {
+      paste0(
+        input$country, "_",
+        "multi_indicator_",
+        input$year, "_",
+        format(Sys.Date(), "%Y%m%d"),
+        ".png"
+      )
+    },
+    content = function(file) {
+      showNotification("Generating multi-indicator map... This may take a few seconds.",
+                      type = "message", duration = 3)
+
+      # Get selected indicators
+      selected_indicators <- c(
+        input$faceted_indicator1,
+        input$faceted_indicator2,
+        input$faceted_indicator3,
+        input$faceted_indicator4
+      )
+
+      # Filter out NULL and empty values
+      selected_indicators <- selected_indicators[!is.na(selected_indicators) & selected_indicators != ""]
+
+      if (length(selected_indicators) == 0) {
+        showNotification("No indicators selected", type = "error", duration = 5)
+        return(NULL)
+      }
+
+      # Get filtered data
+      window <- disruption_window()
+      filtered_data <- window$data %>%
+        filter(indicator_common_id %in% selected_indicators)
+
+      if (nrow(filtered_data) == 0) {
+        showNotification("No data available for selected indicators", type = "error", duration = 5)
+        return(NULL)
+      }
+
+      # Get country name
+      country_name <- tools::toTitleCase(gsub("([0-9])", " \\1", input$country))
+
+      # Create the plot
+      tryCatch({
+        p <- create_faceted_map(
+          geo_data = rv$geo_data,
+          disruption_data = filtered_data,
+          selected_indicators = selected_indicators,
+          indicator_labels_df = current_indicator_labels(),
+          year = input$year,
+          period_label = window$label,
+          country_name = country_name,
+          admin_level = rv$data_admin_level
+        )
+
+        # Save the plot
+        ggsave(
+          filename = file,
+          plot = p,
+          width = 14,
+          height = 12,
+          dpi = 300,
+          bg = "white"
+        )
+
+        showNotification("Multi-indicator map exported successfully!", type = "message", duration = 3)
+      }, error = function(e) {
+        showNotification(paste("Error exporting map:", e$message), type = "error", duration = 10)
+      })
     }
   )
 

@@ -45,6 +45,7 @@ create_app_sidebar <- function() {
       id = "app_tabs",
       selected = "map",
       dash_menu_item("Disruption Map", tabName = "map", icon = icon("map")),
+      dash_menu_item("Multi-indicator Map", tabName = "faceted_map", icon = icon("th-large")),
       dash_menu_item("Heatmap", tabName = "heatmap", icon = icon("th")),
       dash_menu_item("Summary Statistics", tabName = "stats", icon = icon("chart-bar")),
       dash_menu_item("Year-on-year change", tabName = "yoy_map", icon = icon("chart-line")),
@@ -193,6 +194,85 @@ create_map_tab <- function(db_connected = FALSE) {
     tab$attribs$class <- paste(tab$attribs$class, "active")
   }
   tab
+}
+
+# Create faceted map tab
+create_faceted_map_tab <- function() {
+  tabItem(
+    tabName = "faceted_map",
+    fluidRow(
+      box(
+        title = "Multi-Indicator Selection",
+        status = "primary",
+        solidHeader = TRUE,
+        width = 12,
+        collapsible = TRUE,
+        collapsed = FALSE,
+
+        tags$div(
+          style = "background: #f8f9fa; padding: 12px; border-left: 3px solid #3c8dbc; margin-bottom: 15px;",
+          tags$p(
+            style = "margin: 0; font-size: 12px; color: #555;",
+            tags$b("Note: "),
+            "Configure the Disruption Map tab first to load data. This view will display up to 4 indicators simultaneously in a faceted layout."
+          )
+        ),
+
+        fluidRow(
+          column(3,
+            selectInput("faceted_indicator1", "Indicator 1:",
+                       choices = NULL,
+                       selected = NULL)
+          ),
+          column(3,
+            selectInput("faceted_indicator2", "Indicator 2:",
+                       choices = NULL,
+                       selected = NULL)
+          ),
+          column(3,
+            selectInput("faceted_indicator3", "Indicator 3:",
+                       choices = NULL,
+                       selected = NULL)
+          ),
+          column(3,
+            selectInput("faceted_indicator4", "Indicator 4:",
+                       choices = NULL,
+                       selected = NULL)
+          )
+        )
+      )
+    ),
+
+    fluidRow(
+      box(
+        title = "Multi-Indicator Comparison Map",
+        status = "info",
+        solidHeader = TRUE,
+        width = 12,
+        fluidRow(
+          column(8,
+            tags$div(
+              style = "background: #f4f6f9; padding: 12px 15px; border-radius: 4px; margin-bottom: 10px; border-left: 4px solid #00a65a;",
+              tags$div(
+                style = "font-size: 11px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;",
+                "Viewing Multiple Indicators"
+              ),
+              tags$div(
+                style = "font-size: 14px; color: #333; font-weight: 600;",
+                uiOutput("faceted_map_subtitle", inline = TRUE)
+              )
+            )
+          ),
+          column(4,
+            downloadButton("download_faceted_map", "Download as PNG",
+                          class = "btn-primary pull-right",
+                          style = "margin-bottom: 10px; margin-top: 15px;")
+          )
+        ),
+        plotOutput("faceted_map_plot", height = "900px")
+      )
+    )
+  )
 }
 
 create_yoy_tab <- function() {
