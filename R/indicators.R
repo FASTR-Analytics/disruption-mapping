@@ -118,10 +118,10 @@ indicator_labels <- data.frame(
     "Children <5 in nutrition program",
     "Children <5 yrs who received LLIN",
     "Low birth weight newborns",
-    "Fully vaccinated (0-11 months)",
-    "Fully vaccinated Females (0-11 months)",
-    "Fully vaccinated Males (0-11 months)",
-    "Children 6-59 months receiving two doses vitamin A",
+    "Fully vaccinated children (0-11 months)",
+    "Fully vaccinated girls (0-11 months)",
+    "Fully vaccinated boys (0-11 months)",
+    "Children 6-59 months receiving two vitamin A doses",
     "Vitamin A given"
   ),
   stringsAsFactors = FALSE
@@ -243,10 +243,10 @@ indicator_labels_fr <- data.frame(
     "Enfants <5 dans programme nutrition",
     "Enfants <5 ans ayant reçu MILD",
     "Naissances vivantes faible poids",
-    "Total Completement Vaccines (0-11)",
-    "Total Completement Vaccines Filles (0-11 m)",
-    "Total Completement Vaccines Garçons (0-11 m)",
-    "Nombre d'enfants de 6 mois a 59 mois ayant reçu deux doses de vitamine A",
+    "Enfants complètement vaccinés (0-11 mois)",
+    "Filles complètement vaccinées (0-11 mois)",
+    "Garçons complètement vaccinés (0-11 mois)",
+    "Enfants 6-59 mois ayant reçu deux doses de vitamine A",
     "Vitamine A administrée"
   ),
   stringsAsFactors = FALSE
