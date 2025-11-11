@@ -561,6 +561,28 @@ create_faceted_map <- function(geo_data, disruption_data,
       plot.margin = margin(15, 15, 15, 15)
     )
 
+  # Add north arrow and scale bar (once for entire plot)
+  p <- p +
+    annotation_north_arrow(
+      location = "tr",
+      which_north = "true",
+      pad_x = unit(0.5, "cm"),
+      pad_y = unit(0.5, "cm"),
+      height = unit(1, "cm"),
+      width = unit(1, "cm"),
+      style = north_arrow_fancy_orienteering(
+        fill = c("grey40", "white"),
+        line_col = "grey20"
+      )
+    ) +
+    annotation_scale(
+      location = "bl",
+      width_hint = 0.2,
+      style = "ticks",
+      line_width = 1,
+      text_cex = 0.8
+    )
+
   # Add title if provided
   if (!is.null(period_label) && !is.null(country_name)) {
     p <- p + labs(
