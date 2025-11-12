@@ -264,9 +264,11 @@ create_faceted_map_tab <- function() {
             )
           ),
           column(4,
+            checkboxInput("faceted_show_labels", "Show area names", value = FALSE,
+                         width = "100%"),
             downloadButton("download_faceted_map", "Download as PNG",
                           class = "btn-primary pull-right",
-                          style = "margin-bottom: 10px; margin-top: 15px;")
+                          style = "margin-bottom: 10px;")
           )
         ),
         plotOutput("faceted_map_plot", height = "900px")

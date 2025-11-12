@@ -1128,7 +1128,8 @@ server <- function(input, output, session) {
       period_label = window$label,
       country_name = country_name,
       admin_level = rv$data_admin_level,
-      lang = rv$lang
+      lang = rv$lang,
+      show_labels = input$faceted_show_labels
     )
   })
 
@@ -1351,7 +1352,8 @@ server <- function(input, output, session) {
           period_label = window$label,
           country_name = country_name,
           admin_level = rv$data_admin_level,
-          lang = rv$lang
+          lang = rv$lang,
+          show_labels = input$faceted_show_labels
         )
 
         # Save the plot

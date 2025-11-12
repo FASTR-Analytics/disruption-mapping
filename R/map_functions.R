@@ -453,12 +453,14 @@ create_faceted_map <- function(geo_data, disruption_data,
                                period_label = NULL,
                                country_name = NULL,
                                admin_level = "2",
-                               lang = "en") {
+                               lang = "en",
+                               show_labels = FALSE) {
 
   require(ggplot2)
   require(sf)
   require(dplyr)
   require(tidyr)
+  require(ggspatial)
 
   # Filter for selected indicators
   selected_indicators <- selected_indicators[!is.na(selected_indicators) & selected_indicators != ""]
@@ -556,7 +558,7 @@ create_faceted_map <- function(geo_data, disruption_data,
     theme(
       plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 5)),
       plot.subtitle = element_text(size = 12, hjust = 0.5, margin = margin(b = 15)),
-      plot.caption = element_text(size = 8, hjust = 0.5, margin = margin(t = 10), color = "grey40"),
+      plot.caption = element_text(size = 10, hjust = 0.5, margin = margin(t = 10), color = "grey40"),
       legend.position = "bottom",
       legend.title = element_text(size = 10, face = "bold"),
       legend.text = element_text(size = 9),
@@ -565,27 +567,15 @@ create_faceted_map <- function(geo_data, disruption_data,
       plot.margin = margin(15, 15, 15, 15)
     )
 
-  # Add north arrow and scale bar (once for entire plot)
-  p <- p +
-    annotation_north_arrow(
-      location = "tr",
-      which_north = "true",
-      pad_x = unit(0.5, "cm"),
-      pad_y = unit(0.5, "cm"),
-      height = unit(1, "cm"),
-      width = unit(1, "cm"),
-      style = north_arrow_fancy_orienteering(
-        fill = c("grey40", "white"),
-        line_col = "grey20"
-      )
-    ) +
-    annotation_scale(
-      location = "bl",
-      width_hint = 0.2,
-      style = "ticks",
-      line_width = 1,
-      text_cex = 0.8
+  # Add area name labels if requested
+  if (show_labels) {
+    p <- p + geom_sf_text(
+      aes(label = name),
+      size = 2.2,
+      nudge_y = -0.05,
+      color = "black"
     )
+  }
 
   # Translate text elements
   if (lang == "fr") {
@@ -625,6 +615,41 @@ create_faceted_map <- function(geo_data, disruption_data,
       caption = caption_text
     )
   }
+
+  # Add scale bar and north arrow
+  # These will appear ONLY on the first facet panel
+
+  # Create annotation data restricted to first indicator
+  first_indicator <- levels(map_data_all$indicator_display)[1]
+  annotation_data_scale <- map_data_all %>%
+    filter(indicator_display == first_indicator)
+
+  # Add scale bar (bottom left of first panel)
+  p <- p +
+    annotation_scale(
+      data = annotation_data_scale,
+      location = "bl",
+      width_hint = 0.3,
+      style = "ticks",
+      line_width = 1.5,
+      text_cex = 0.9,
+      pad_x = unit(0.5, "cm"),
+      pad_y = unit(0.5, "cm")
+    ) +
+    # Add north arrow (bottom right of first panel)
+    annotation_north_arrow(
+      data = annotation_data_scale,
+      location = "br",
+      which_north = "true",
+      pad_x = unit(0.5, "cm"),
+      pad_y = unit(0.5, "cm"),
+      height = unit(1.2, "cm"),
+      width = unit(1.2, "cm"),
+      style = north_arrow_fancy_orienteering(
+        fill = c("grey40", "white"),
+        line_col = "grey20"
+      )
+    )
 
   return(p)
 }
