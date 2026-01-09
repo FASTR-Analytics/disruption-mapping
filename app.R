@@ -62,9 +62,9 @@ if (file.exists(".env")) {
 
 # Source modular R files
 source("R/indicators.R")
+source("R/translations.R")
 source("R/data_functions.R")
 source("R/map_functions.R")
-source("R/translations.R")
 source("R/ui_components.R")
 
 # ========================================

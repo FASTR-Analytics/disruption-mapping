@@ -155,6 +155,44 @@ ui_translations <- list(
   )
 )
 
+# Country name translations (code -> full name)
+country_names <- list(
+  en = list(
+    cameroon = "Cameroon",
+    drc = "Democratic Republic of the Congo",
+    ethiopia = "Ethiopia",
+    ghana = "Ghana",
+    guinea = "Guinea",
+    haiti = "Haiti",
+    liberia = "Liberia",
+    nigeria = "Nigeria",
+    senegal = "Senegal",
+    sierraleone = "Sierra Leone",
+    somalia = "Somalia",
+    somaliland = "Somaliland"
+  ),
+  fr = list(
+    cameroon = "Cameroun",
+    drc = "République démocratique du Congo",
+    ethiopia = "Éthiopie",
+    ghana = "Ghana",
+    guinea = "Guinée",
+    haiti = "Haïti",
+    liberia = "Libéria",
+    nigeria = "Nigéria",
+    senegal = "Sénégal",
+    sierraleone = "Sierra Leone",
+    somalia = "Somalie",
+    somaliland = "Somaliland"
+  )
+)
+
+# Helper function to get translated country name
+get_country_display_name <- function(country_code, lang = "en") {
+  if (is.null(country_code)) return(NULL)
+  country_names[[lang]][[tolower(country_code)]] %||% country_code
+}
+
 # Helper function to get translation without masking base::t()
 translate_text <- function(key, lang = "en") {
   ui_translations[[lang]][[key]] %||% key
