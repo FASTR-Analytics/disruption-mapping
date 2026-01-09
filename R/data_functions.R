@@ -9,14 +9,15 @@ get_available_countries <- function() {
 
   allowlist <- c(
     cameroon = "Cameroon",
-    ghana = "Ghana",
+    drc = "Democratic Republic of the Congo",
     ethiopia = "Ethiopia",
+    ghana = "Ghana",
     guinea = "Guinea",
-    nigeria = "Nigeria",
     haiti = "Haiti",
     liberia = "Liberia",
-    sierraleone = "Sierra Leone",
+    nigeria = "Nigeria",
     senegal = "Senegal",
+    sierraleone = "Sierra Leone",
     somalia = "Somalia",
     somaliland = "Somaliland"
   )
