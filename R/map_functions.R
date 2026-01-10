@@ -550,7 +550,7 @@ create_faceted_map <- function(geo_data, disruption_data,
       size = 2.5,
       fontface = "bold",
       color = "black",
-      nudge_y = 0.04
+      nudge_y = 0.12
     ) +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
@@ -573,7 +573,7 @@ create_faceted_map <- function(geo_data, disruption_data,
     p <- p + geom_sf_text(
       aes(label = name),
       size = 2.2,
-      nudge_y = -0.06,
+      nudge_y = -0.12,
       color = "black"
     )
   }
