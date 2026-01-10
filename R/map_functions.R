@@ -595,14 +595,12 @@ create_faceted_map <- function(geo_data, disruption_data,
       segment.inflect = TRUE,
       arrow = arrow(length = unit(0.01, "npc")),
       min.segment.length = 0,
-      box.padding = 0.8,
-      point.padding = 0.5,
-      force = 15,
-      force_pull = 0.5,
+      box.padding = 0.5,
+      point.padding = 0.3,
+      force = 8,
+      force_pull = 0.8,
       max.overlaps = Inf,
       max.iter = 10000,
-      xlim = c(-Inf, Inf),
-      ylim = c(-Inf, Inf),
       seed = 42
     ) +
     # Facet by indicator with dynamic columns
