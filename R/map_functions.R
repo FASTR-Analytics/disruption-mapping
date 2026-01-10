@@ -392,15 +392,15 @@ save_map_png <- function(map_data, filename,
         title.hjust = 0.5
       )
     ) +
-    # Add labels with repel (auto-positions with elbow-style leader lines)
+    # Add labels with repel (auto-positions with curved leader lines)
     geom_text_repel(
       aes(x = x, y = y, label = map_label),
       size = 2.5,
       lineheight = 0.9,
       segment.color = "grey50",
       segment.size = 0.3,
-      segment.square = TRUE,
-      segment.inflect = TRUE,
+      segment.curvature = -0.2,
+      segment.angle = 20,
       min.segment.length = 0,
       box.padding = 0.5,
       point.padding = 0.3,
@@ -583,15 +583,15 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Add labels with repel (auto-positions with elbow-style leader lines)
+    # Add labels with repel (auto-positions with curved leader lines)
     geom_text_repel(
       aes(x = x, y = y, label = map_label),
       size = 2.2,
       lineheight = 0.9,
       segment.color = "grey50",
       segment.size = 0.3,
-      segment.square = TRUE,
-      segment.inflect = TRUE,
+      segment.curvature = -0.2,
+      segment.angle = 20,
       min.segment.length = 0,
       box.padding = 0.5,
       point.padding = 0.3,
