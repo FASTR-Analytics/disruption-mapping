@@ -347,6 +347,7 @@ save_map_png <- function(map_data, filename,
   require(ggplot2)
   require(sf)
   require(ggspatial)
+  require(ggrepel)
 
   # Prepare title and subtitle
   title_text <- indicator_name
@@ -359,6 +360,19 @@ save_map_png <- function(map_data, filename,
 
   # Continuous gradient matching leaflet
   color_values <- c("#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641")
+
+  # Extract centroid coordinates for label positioning
+  map_data <- map_data %>%
+    mutate(
+      centroid = st_centroid(geometry),
+      x = st_coordinates(centroid)[, 1],
+      y = st_coordinates(centroid)[, 2],
+      # Combined label: % on first line, name on second
+      map_label = paste0(
+        ifelse(!is.na(percent_change), paste0(round(percent_change, 0), "%"), "n/a"),
+        "\n", name
+      )
+    )
 
   # Create the map
   p <- ggplot(data = map_data) +
@@ -378,19 +392,18 @@ save_map_png <- function(map_data, filename,
         title.hjust = 0.5
       )
     ) +
-    # Add district labels with values
-    geom_sf_text(
-      aes(label = paste0(round(percent_change, 0), "%")),
+    # Add labels with repel (auto-positions with leader lines when needed)
+    geom_text_repel(
+      aes(x = x, y = y, label = map_label),
       size = 2.5,
-      fontface = "bold",
-      color = "black"
-    ) +
-    # Add district names
-    geom_sf_text(
-      aes(label = name),
-      size = 2.2,
-      nudge_y = -0.05,
-      color = "black"
+      lineheight = 0.9,
+      segment.color = "grey50",
+      segment.size = 0.3,
+      min.segment.length = 0,
+      box.padding = 0.3,
+      point.padding = 0.2,
+      force = 3,
+      max.overlaps = Inf
     )
 
   # Add common elements
