@@ -542,14 +542,15 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Add percent values
+    # Add percent values (nudged up)
     geom_sf_text(
       aes(label = ifelse(!is.na(percent_change),
                         paste0(round(percent_change, 0), "%"),
                         "n/a")),
       size = 2.5,
       fontface = "bold",
-      color = "black"
+      color = "black",
+      nudge_y = 0.04
     ) +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
@@ -567,12 +568,12 @@ create_faceted_map <- function(geo_data, disruption_data,
       plot.margin = margin(15, 15, 15, 15)
     )
 
-  # Add area name labels if requested
+  # Add area name labels if requested (nudged down, below percent values)
   if (show_labels) {
     p <- p + geom_sf_text(
       aes(label = name),
       size = 2.2,
-      nudge_y = -0.05,
+      nudge_y = -0.06,
       color = "black"
     )
   }
