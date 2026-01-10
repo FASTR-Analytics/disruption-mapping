@@ -461,6 +461,7 @@ create_faceted_map <- function(geo_data, disruption_data,
   require(dplyr)
   require(tidyr)
   require(ggspatial)
+  require(ggrepel)
 
   # Filter for selected indicators
   selected_indicators <- selected_indicators[!is.na(selected_indicators) & selected_indicators != ""]
@@ -523,6 +524,24 @@ create_faceted_map <- function(geo_data, disruption_data,
   # Translate legend title
   legend_title <- if (lang == "fr") "% Changement" else "% Change"
 
+  # Extract centroid coordinates for label positioning
+  map_data_all <- map_data_all %>%
+    mutate(
+      centroid = st_centroid(geometry),
+      x = st_coordinates(centroid)[, 1],
+      y = st_coordinates(centroid)[, 2],
+      # Create label: combined (% + name) if show_labels, otherwise just %
+      map_label = ifelse(!is.na(percent_change),
+                         paste0(round(percent_change, 0), "%"),
+                         "n/a")
+    )
+
+  # Add area name to label if show_labels is TRUE
+  if (show_labels) {
+    map_data_all <- map_data_all %>%
+      mutate(map_label = paste0(map_label, "\n", name))
+  }
+
   # Create the faceted map
   p <- ggplot(data = map_data_all) +
     geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
@@ -542,15 +561,18 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Add percent values (nudged up)
-    geom_sf_text(
-      aes(label = ifelse(!is.na(percent_change),
-                        paste0(round(percent_change, 0), "%"),
-                        "n/a")),
-      size = 2.5,
-      fontface = "bold",
-      color = "black",
-      nudge_y = 0.5
+    # Add labels with repel (auto-positions with leader lines when needed)
+    geom_text_repel(
+      aes(x = x, y = y, label = map_label),
+      size = 2.2,
+      lineheight = 0.9,
+      segment.color = "grey50",
+      segment.size = 0.3,
+      min.segment.length = 0,
+      box.padding = 0.3,
+      point.padding = 0.2,
+      force = 3,
+      max.overlaps = Inf
     ) +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
@@ -567,16 +589,6 @@ create_faceted_map <- function(geo_data, disruption_data,
       strip.background = element_rect(fill = "#f0f0f0", color = NA),
       plot.margin = margin(15, 15, 15, 15)
     )
-
-  # Add area name labels if requested (nudged down, below percent values)
-  if (show_labels) {
-    p <- p + geom_sf_text(
-      aes(label = name),
-      size = 2.2,
-      nudge_y = -0.5,
-      color = "black"
-    )
-  }
 
   # Translate text elements
   # Get translated country name

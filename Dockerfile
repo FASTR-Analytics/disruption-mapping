@@ -36,7 +36,7 @@ RUN R -e "install.packages(c('tidyr', 'rlang', 'data.table'), Ncpus = 2)"
 RUN R -e "install.packages(c('sf', 'leaflet'), Ncpus = 2)"
 
 # Install plotting packages
-RUN R -e "install.packages(c('ggplot2', 'scales'), Ncpus = 2)"
+RUN R -e "install.packages(c('ggplot2', 'scales', 'ggrepel'), Ncpus = 2)"
 
 # Install htmlwidgets and ggspatial for professional map export
 RUN R -e "install.packages(c('htmlwidgets', 'ggspatial'), Ncpus = 2)"
