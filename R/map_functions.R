@@ -400,10 +400,15 @@ save_map_png <- function(map_data, filename,
       segment.color = "grey50",
       segment.size = 0.3,
       min.segment.length = 0,
-      box.padding = 0.3,
-      point.padding = 0.2,
-      force = 3,
-      max.overlaps = Inf
+      box.padding = 0.5,
+      point.padding = 0.3,
+      force = 8,
+      force_pull = 0.5,
+      max.overlaps = Inf,
+      max.iter = 10000,
+      xlim = c(-Inf, Inf),
+      ylim = c(-Inf, Inf),
+      seed = 42
     )
 
   # Add common elements
@@ -433,6 +438,8 @@ save_map_png <- function(map_data, filename,
       subtitle = subtitle_text,
       caption = caption_text
     ) +
+    # Allow labels to extend outside plot area
+    coord_sf(clip = "off") +
     # Clean theme
     theme_void() +
     theme(
@@ -442,7 +449,7 @@ save_map_png <- function(map_data, filename,
       legend.position = "bottom",
       legend.title = element_text(size = 10, face = "bold"),
       legend.text = element_text(size = 9),
-      plot.margin = margin(20, 20, 20, 20)
+      plot.margin = margin(40, 40, 40, 40)
     )
 
   # Save the plot
@@ -582,13 +589,20 @@ create_faceted_map <- function(geo_data, disruption_data,
       segment.color = "grey50",
       segment.size = 0.3,
       min.segment.length = 0,
-      box.padding = 0.3,
-      point.padding = 0.2,
-      force = 3,
-      max.overlaps = Inf
+      box.padding = 0.5,
+      point.padding = 0.3,
+      force = 8,
+      force_pull = 0.5,
+      max.overlaps = Inf,
+      max.iter = 10000,
+      xlim = c(-Inf, Inf),
+      ylim = c(-Inf, Inf),
+      seed = 42
     ) +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
+    # Allow labels to extend outside plot area
+    coord_sf(clip = "off") +
     # Clean theme
     theme_void() +
     theme(
@@ -600,7 +614,7 @@ create_faceted_map <- function(geo_data, disruption_data,
       legend.text = element_text(size = 9),
       strip.text = element_text(size = 11, face = "bold", margin = margin(5, 0, 5, 0)),
       strip.background = element_rect(fill = "#f0f0f0", color = NA),
-      plot.margin = margin(15, 15, 15, 15)
+      plot.margin = margin(30, 30, 30, 30)
     )
 
   # Translate text elements
