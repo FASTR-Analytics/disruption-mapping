@@ -419,11 +419,11 @@ save_map_png <- function(map_data, filename,
       size = 3.0,
       fontface = "bold"
     ) +
-    # Name slightly below centroid
+    # Name below centroid
     geom_text(
       aes(x = x, y = y, label = name_label),
       size = 2.5,
-      nudge_y = -0.15
+      nudge_y = -0.4
     )
 
   # Add common elements
@@ -595,11 +595,11 @@ create_faceted_map <- function(geo_data, disruption_data,
       size = 2.5,
       fontface = "bold"
     ) +
-    # Name slightly below centroid (only if show_labels)
+    # Name below centroid (only if show_labels)
     {if (show_labels) geom_text(
       aes(x = x, y = y, label = name_label),
       size = 2.0,
-      nudge_y = -0.12
+      nudge_y = -0.35
     ) else NULL} +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
