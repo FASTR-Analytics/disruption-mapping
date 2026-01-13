@@ -33,7 +33,7 @@ create_app_header <- function() {
               .docs-link {
                 margin: 10px 5px 10px 15px;
                 padding: 5px 15px;
-                background: #21568C;
+                background: #0f706d;
                 color: white;
                 border: none;
                 border-radius: 4px;
@@ -42,7 +42,7 @@ create_app_header <- function() {
                 font-size: 14px;
               }
               .docs-link:hover {
-                background: #1a90c0;
+                background: #1a8b86;
                 color: white;
                 text-decoration: none;
               }
