@@ -29,3 +29,8 @@ Thumbs.db
 *~
 *.swp
 *.swo
+
+# Output files
+outputs/
+*.png
+!docs/**/*.png
