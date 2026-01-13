@@ -214,28 +214,18 @@ create_faceted_map_tab <- function() {
           tags$p(
             style = "margin: 0; font-size: 12px; color: #555;",
             tags$b("Note: "),
-            "Configure the Disruption Map tab first to load data. This view will display up to 4 indicators simultaneously in a faceted layout."
+            "Configure the Disruption Map tab first to load data. This view will display 2 indicators side by side."
           )
         ),
 
         fluidRow(
-          column(3,
+          column(6,
             selectInput("faceted_indicator1", "Indicator 1:",
                        choices = NULL,
                        selected = NULL)
           ),
-          column(3,
+          column(6,
             selectInput("faceted_indicator2", "Indicator 2:",
-                       choices = NULL,
-                       selected = NULL)
-          ),
-          column(3,
-            selectInput("faceted_indicator3", "Indicator 3:",
-                       choices = NULL,
-                       selected = NULL)
-          ),
-          column(3,
-            selectInput("faceted_indicator4", "Indicator 4:",
                        choices = NULL,
                        selected = NULL)
           )

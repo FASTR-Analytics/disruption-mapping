@@ -235,8 +235,6 @@ server <- function(input, output, session) {
       # Keep current selections
       current_faceted_1 <- input$faceted_indicator1
       current_faceted_2 <- input$faceted_indicator2
-      current_faceted_3 <- input$faceted_indicator3
-      current_faceted_4 <- input$faceted_indicator4
 
       updateSelectInput(session, "faceted_indicator1",
                        choices = faceted_indicator_choices,
@@ -244,12 +242,6 @@ server <- function(input, output, session) {
       updateSelectInput(session, "faceted_indicator2",
                        choices = faceted_indicator_choices,
                        selected = current_faceted_2)
-      updateSelectInput(session, "faceted_indicator3",
-                       choices = faceted_indicator_choices,
-                       selected = current_faceted_3)
-      updateSelectInput(session, "faceted_indicator4",
-                       choices = faceted_indicator_choices,
-                       selected = current_faceted_4)
     }
 
     # Show notification
@@ -376,12 +368,6 @@ server <- function(input, output, session) {
         updateSelectInput(session, "faceted_indicator2",
                          choices = indicator_choices,
                          selected = if(length(default_selections) >= 2) default_selections[2] else NULL)
-        updateSelectInput(session, "faceted_indicator3",
-                         choices = indicator_choices,
-                         selected = if(length(default_selections) >= 3) default_selections[3] else NULL)
-        updateSelectInput(session, "faceted_indicator4",
-                         choices = indicator_choices,
-                         selected = if(length(default_selections) >= 4) default_selections[4] else NULL)
 
         level_name <- if(input$admin_level == "2") "Admin Level 2" else "Admin Level 3"
         showNotification(paste("Data loaded from database (", level_name, ")"), type = "message")
@@ -454,12 +440,6 @@ server <- function(input, output, session) {
         updateSelectInput(session, "faceted_indicator2",
                          choices = indicator_choices,
                          selected = if(length(default_selections) >= 2) default_selections[2] else NULL)
-        updateSelectInput(session, "faceted_indicator3",
-                         choices = indicator_choices,
-                         selected = if(length(default_selections) >= 3) default_selections[3] else NULL)
-        updateSelectInput(session, "faceted_indicator4",
-                         choices = indicator_choices,
-                         selected = if(length(default_selections) >= 4) default_selections[4] else NULL)
 
         incProgress(0.2, detail = "Complete!")
       })
@@ -1089,12 +1069,10 @@ server <- function(input, output, session) {
     # Add language as dependency to trigger re-render
     current_lang <- rv$lang
 
-    # Get selected indicators
+    # Get selected indicators (2 maps only)
     selected_indicators <- c(
       input$faceted_indicator1,
-      input$faceted_indicator2,
-      input$faceted_indicator3,
-      input$faceted_indicator4
+      input$faceted_indicator2
     )
 
     # Filter out NULL and empty values
@@ -1312,12 +1290,10 @@ server <- function(input, output, session) {
       showNotification("Generating multi-indicator map... This may take a few seconds.",
                       type = "message", duration = 3)
 
-      # Get selected indicators
+      # Get selected indicators (2 maps only)
       selected_indicators <- c(
         input$faceted_indicator1,
-        input$faceted_indicator2,
-        input$faceted_indicator3,
-        input$faceted_indicator4
+        input$faceted_indicator2
       )
 
       # Filter out NULL and empty values
