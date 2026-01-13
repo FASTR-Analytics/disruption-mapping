@@ -11,7 +11,13 @@ The application is hosted on Hugging Face Spaces:
 !!! note "First Load"
     The app may take 30-60 seconds to wake up if it hasn't been used recently.
 
-## Data Flow
+## Data Source
+
+This app visualizes outputs from the [FASTR Analytics Platform](https://fastr-analytics.github.io/fastr-resource-hub/).
+
+The FASTR Analytics Platform is a web-based tool designed to support data quality assessment, adjustment, and analysis for routine health data. It allows users to upload and analyze data from various sources, including DHIS2, with built-in statistical methods to generate an adjusted dataset and run priority analyses on selected indicators.
+
+### Data Flow
 
 ```mermaid
 graph LR
@@ -24,6 +30,9 @@ graph LR
     D -->|M3 output| G[Multi-Indicator]
     D -->|M3 output| H[Heatmap]
 ```
+
+- **M2 (Data Quality Adjustment)**: [Documentation](https://fastr-analytics.github.io/fastr-resource-hub/05_data_quality_adjustment/)
+- **M3 (Service Utilization)**: [Documentation](https://fastr-analytics.github.io/fastr-resource-hub/06a_service_utilization/)
 
 ## Interface Overview
 

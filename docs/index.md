@@ -24,12 +24,18 @@ This application allows health analysts to visualize and compare actual vs expec
 4. Select year and indicator
 5. View and export your map
 
+## Data Source
+
+This app visualizes outputs from the [FASTR Analytics Platform](https://fastr-analytics.github.io/fastr-resource-hub/) - a web-based tool for data quality assessment, adjustment, and analysis of routine health data from DHIS2 and other sources.
+
+| Tab | Input | Documentation |
+|-----|-------|---------------|
+| Disruption Map | M3 output | [Service Utilization](https://fastr-analytics.github.io/fastr-resource-hub/06a_service_utilization/) |
+| Multi-Indicator | M3 output | [Service Utilization](https://fastr-analytics.github.io/fastr-resource-hub/06a_service_utilization/) |
+| Year-on-Year | M2 output | [Data Quality Adjustment](https://fastr-analytics.github.io/fastr-resource-hub/05_data_quality_adjustment/) |
+| Heatmap | M3 output | [Service Utilization](https://fastr-analytics.github.io/fastr-resource-hub/06a_service_utilization/) |
+
 ## Data Requirements
-
-The app uses output from the [FASTR Analytics Platform](https://fastr-analytics.github.io/fastr-resource-hub/):
-
-- **Disruption Map / Multi-Indicator**: Uses M3 (Service Utilization) output
-- **Year-on-Year Change**: Uses M2 (Data Quality Adjustment) output
 
 Required CSV columns:
 
