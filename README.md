@@ -14,12 +14,22 @@ Interactive visualization of health service disruptions across administrative ar
 
 ## Features
 
-- Interactive maps with color-coded administrative areas
+- Interactive choropleth maps with color-coded administrative areas
+- Multi-indicator comparison (side-by-side maps)
+- Year-on-Year change analysis (compare current vs previous year)
 - Heatmap view showing all 52+ health indicators at once
 - Publication-ready PNG exports (300 DPI) with north arrow and scale bar
 - Support for 17 countries across Africa
 - French/English language support for key UI elements
-- Dynamic time period detection
+
+## Tabs
+
+| Tab | Input Data | Purpose |
+|-----|------------|---------|
+| Disruption Map | M3 output | Single indicator disruption vs expected |
+| Multi-Indicator | M3 output | Compare 2 indicators side-by-side |
+| Year-on-Year | M2 output | Compare current year to previous year, with option to use outlier-adjusted or raw values |
+| Heatmap | M3 output | Overview of all indicators across all areas |
 
 ## Supported Indicators
 

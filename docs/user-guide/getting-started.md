@@ -11,6 +11,20 @@ The application is hosted on Hugging Face Spaces:
 !!! note "First Load"
     The app may take 30-60 seconds to wake up if it hasn't been used recently.
 
+## Data Flow
+
+```mermaid
+graph LR
+    A[HMIS Data] --> B[M1: Data Quality Assessment]
+    B --> C[M2: Data Quality Adjustment]
+    C --> D[M3: Service Utilization]
+
+    C -->|M2 output| E[Year-on-Year Tab]
+    D -->|M3 output| F[Disruption Map]
+    D -->|M3 output| G[Multi-Indicator]
+    D -->|M3 output| H[Heatmap]
+```
+
 ## Interface Overview
 
 The application has several tabs:
@@ -19,20 +33,33 @@ The application has several tabs:
 
 Main choropleth map view for a single health indicator. Shows percent change between actual and expected service delivery across administrative areas. Use this for focused analysis of one indicator at a time.
 
+**Input**: M3 (Service Utilization) output
+
 ### Multi-Indicator
 
 Side-by-side comparison of 2 indicators on the same map layout. Useful for identifying patterns across related services (e.g., comparing ANC1 and facility deliveries).
 
+**Input**: M3 (Service Utilization) output
+
 ### Year-on-Year Change
 
-Compares service utilization between the current period and the previous year. This tab uses output from [Module 2 (Data Quality Adjustment)](https://fastr-analytics.github.io/fastr-resource-hub/05_data_quality_adjustment/) of the FASTR Analytics platform. Options include:
+Compares service utilization between the current year and the previous year. Shows whether services are recovering, stable, or declining compared to the same period last year.
 
-- **Adjusted vs raw data**: Choose whether to use outlier-adjusted values
-- **Period selection**: Compare specific months or cumulative totals
+**Input**: M2 (Data Quality Adjustment) output from the [FASTR Analytics Platform](https://fastr-analytics.github.io/fastr-resource-hub/05_data_quality_adjustment/)
+
+**Options**:
+
+- **Adjusted vs Raw**: Toggle between outlier-adjusted values or raw reported values. Adjusted values correct for reporting anomalies identified in M1.
+- **Period selection**: Compare specific months or cumulative year-to-date totals
+- **Indicator**: Select which health service to analyze
+
+**Use case**: Track recovery after a disruption event, monitor seasonal patterns, or assess whether interventions are having an impact compared to the baseline year.
 
 ### Heatmap
 
 Matrix visualization showing all indicators across all administrative areas. Quickly identify which services and locations have the most severe disruptions.
+
+**Input**: M3 (Service Utilization) output
 
 ### Data Table
 
