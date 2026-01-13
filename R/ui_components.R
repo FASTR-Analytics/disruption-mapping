@@ -30,7 +30,29 @@ create_app_header <- function() {
               .lang-toggle:hover {
                 background: #1a8b86;
               }
+              .docs-link {
+                margin: 10px 5px 10px 15px;
+                padding: 5px 15px;
+                background: #21568C;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                text-decoration: none;
+                font-weight: 500;
+                font-size: 14px;
+              }
+              .docs-link:hover {
+                background: #1a90c0;
+                color: white;
+                text-decoration: none;
+              }
             ")),
+            tags$a(href = "https://fastr-analytics.github.io/disruption-mapping/",
+                   target = "_blank",
+                   class = "docs-link",
+                   icon("book"), " Docs")
+    ),
+    tags$li(class = "dropdown",
             actionButton("toggle_language", "FR",
                         class = "lang-toggle",
                         onclick = "")
