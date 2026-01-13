@@ -415,19 +415,11 @@ save_map_png <- function(map_data, filename,
         title.hjust = 0.5
       )
     ) +
-    # Add labels with repel (no segment lines)
-    geom_text_repel(
+    # Add labels centered on centroid
+    geom_text(
       aes(x = x, y = y, label = map_label),
-      size = 2.5,
-      lineheight = 0.9,
-      segment.color = NA,
-      box.padding = 0.3,
-      point.padding = 0.2,
-      force = 4,
-      force_pull = 2,
-      max.overlaps = Inf,
-      max.iter = 5000,
-      seed = 42
+      size = 2.8,
+      lineheight = 0.9
     )
 
   # Add common elements
@@ -600,19 +592,11 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Add labels with repel (no segment lines)
-    geom_text_repel(
+    # Add labels centered on centroid
+    geom_text(
       aes(x = x, y = y, label = map_label),
-      size = 2.0,
-      lineheight = 0.9,
-      segment.color = NA,
-      box.padding = 0.2,
-      point.padding = 0.1,
-      force = 3,
-      force_pull = 2,
-      max.overlaps = Inf,
-      max.iter = 5000,
-      seed = 42
+      size = 2.3,
+      lineheight = 0.9
     ) +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
