@@ -18,7 +18,7 @@ Interactive visualization of health service disruptions across administrative ar
 - Heatmap view showing all 52+ health indicators at once
 - Publication-ready PNG exports (300 DPI) with north arrow and scale bar
 - Support for 17 countries across Africa
-- Full French/English language support
+- French/English language support for key UI elements
 - Dynamic time period detection
 
 ## Supported Indicators
