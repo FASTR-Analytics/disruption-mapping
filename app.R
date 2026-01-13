@@ -369,7 +369,7 @@ server <- function(input, output, session) {
                          selected = indicator_choices[1])
 
         # Update faceted map indicator dropdowns
-        default_selections <- indicator_choices[1:min(4, length(indicator_choices))]
+        default_selections <- indicator_choices[1:min(2, length(indicator_choices))]
         updateSelectInput(session, "faceted_indicator1",
                          choices = indicator_choices,
                          selected = default_selections[1])
@@ -447,7 +447,7 @@ server <- function(input, output, session) {
                          selected = indicator_choices[1])
 
         # Update faceted map indicator dropdowns
-        default_selections <- indicator_choices[1:min(4, length(indicator_choices))]
+        default_selections <- indicator_choices[1:min(2, length(indicator_choices))]
         updateSelectInput(session, "faceted_indicator1",
                          choices = indicator_choices,
                          selected = default_selections[1])

@@ -2,6 +2,26 @@
 # MAP RENDERING FUNCTIONS
 # ========================================
 
+# Clean area names by stripping common prefixes and suffixes
+# e.g., "nu Nord Ubangi Province" -> "Nord Ubangi"
+clean_area_name <- function(name) {
+  if (is.null(name) || is.na(name)) return(name)
+
+  # Remove common suffixes (case insensitive)
+  suffixes <- c(" Province", " Region", " District", " State", " County", " Department")
+  for (suffix in suffixes) {
+    name <- gsub(paste0(suffix, "$"), "", name, ignore.case = TRUE)
+  }
+
+  # Remove 2-3 letter lowercase prefixes followed by space (e.g., "nu ", "su ", "hk ")
+  name <- gsub("^[a-z]{2,3} ", "", name)
+
+  # Trim whitespace
+  name <- trimws(name)
+
+  return(name)
+}
+
 # Load GeoJSON boundaries
 load_geojson_boundaries <- function(country_code, admin_level) {
   geojson_file <- file.path("data/geojson", paste0(country_code, "_backbone.geojson"))
@@ -16,7 +36,8 @@ load_geojson_boundaries <- function(country_code, admin_level) {
   boundaries <- geo %>%
     filter(level == admin_level) %>%
     st_make_valid() %>%
-    select(name, geometry)
+    select(name, geometry) %>%
+    mutate(name = sapply(name, clean_area_name))
 
   return(boundaries)
 }
@@ -392,25 +413,20 @@ save_map_png <- function(map_data, filename,
         title.hjust = 0.5
       )
     ) +
-    # Add labels with repel (auto-positions with curved leader lines + arrows)
+    # Add labels with repel (simple lines, no arrows)
     geom_text_repel(
       aes(x = x, y = y, label = map_label),
       size = 2.5,
       lineheight = 0.9,
-      segment.color = "grey50",
-      segment.size = 0.3,
-      segment.square = TRUE,
-      segment.inflect = TRUE,
-      arrow = arrow(length = unit(0.015, "npc")),
-      min.segment.length = 0,
-      box.padding = 0.8,
-      point.padding = 0.5,
-      force = 15,
-      force_pull = 0.5,
+      segment.color = "grey60",
+      segment.size = 0.25,
+      min.segment.length = 0.2,
+      box.padding = 0.4,
+      point.padding = 0.3,
+      force = 6,
+      force_pull = 1,
       max.overlaps = Inf,
-      max.iter = 10000,
-      xlim = c(-Inf, Inf),
-      ylim = c(-Inf, Inf),
+      max.iter = 5000,
       seed = 42
     )
 
@@ -584,23 +600,20 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Add labels with repel (auto-positions with curved leader lines + arrows)
+    # Add labels with repel (simple lines, no arrows)
     geom_text_repel(
       aes(x = x, y = y, label = map_label),
-      size = 2.2,
+      size = 2.0,
       lineheight = 0.9,
-      segment.color = "grey50",
-      segment.size = 0.3,
-      segment.square = TRUE,
-      segment.inflect = TRUE,
-      arrow = arrow(length = unit(0.01, "npc")),
-      min.segment.length = 0,
-      box.padding = 0.5,
-      point.padding = 0.3,
-      force = 8,
-      force_pull = 0.8,
+      segment.color = "grey60",
+      segment.size = 0.25,
+      min.segment.length = 0.2,
+      box.padding = 0.3,
+      point.padding = 0.2,
+      force = 4,
+      force_pull = 1.2,
       max.overlaps = Inf,
-      max.iter = 10000,
+      max.iter = 5000,
       seed = 42
     ) +
     # Facet by indicator with dynamic columns
