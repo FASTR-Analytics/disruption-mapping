@@ -8,7 +8,7 @@ This application allows health analysts to visualize and compare actual vs expec
 
 ## Features
 
-- **Multi-country support**: Currently includes Cameroon, DRC, Ethiopia, Ghana, Guinea, Haiti, Liberia, Nigeria, Senegal, Sierra Leone, Somalia, and Somaliland
+- **Multi-country support**: Currently includes DRC, Haiti, Ethiopia, Cameroon, Ghana, Guinea, Liberia, Senegal, Sierra Leone, Somalia, and Somaliland
 - **52+ health indicators**: Vaccination, maternal health, nutrition, and more
 - **Bilingual interface**: English and French
 - **Interactive maps**: Choropleth maps with customizable color scales
@@ -26,7 +26,12 @@ This application allows health analysts to visualize and compare actual vs expec
 
 ## Data Requirements
 
-The app expects CSV files with the following columns:
+The app uses output from the [FASTR Analytics Platform](https://fastr-analytics.github.io/fastr-resource-hub/):
+
+- **Disruption Map / Multi-Indicator**: Uses M3 (Service Utilization) output
+- **Year-on-Year Change**: Uses M2 (Data Quality Adjustment) output
+
+Required CSV columns:
 
 - `admin_area_2` or `admin_area_3`: Administrative area name
 - `indicator_common_id`: Indicator identifier
