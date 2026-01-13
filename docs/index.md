@@ -39,3 +39,6 @@ See [Data Format](reference/data-format.md) for detailed specifications.
 ## Support
 
 For issues or questions, please [open an issue on GitHub](https://github.com/FASTR-Analytics/disruption-mapping/issues).
+
+---
+*Documentation built with MkDocs and Material theme*
