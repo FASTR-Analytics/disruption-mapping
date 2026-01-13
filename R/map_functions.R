@@ -36,8 +36,7 @@ load_geojson_boundaries <- function(country_code, admin_level) {
   boundaries <- geo %>%
     filter(level == admin_level) %>%
     st_make_valid() %>%
-    select(name, geometry) %>%
-    mutate(name = sapply(name, clean_area_name))
+    select(name, geometry)
 
   return(boundaries)
 }
@@ -388,10 +387,10 @@ save_map_png <- function(map_data, filename,
       centroid = st_centroid(geometry),
       x = st_coordinates(centroid)[, 1],
       y = st_coordinates(centroid)[, 2],
-      # Combined label: % on first line, name on second
+      # Combined label: % on first line, cleaned name on second
       map_label = paste0(
         ifelse(!is.na(percent_change), paste0(round(percent_change, 0), "%"), "n/a"),
-        "\n", name
+        "\n", sapply(name, clean_area_name)
       )
     )
 
@@ -575,10 +574,10 @@ create_faceted_map <- function(geo_data, disruption_data,
                          "n/a")
     )
 
-  # Add area name to label if show_labels is TRUE
+  # Add area name to label if show_labels is TRUE (clean name for display)
   if (show_labels) {
     map_data_all <- map_data_all %>%
-      mutate(map_label = paste0(map_label, "\n", name))
+      mutate(map_label = paste0(map_label, "\n", sapply(name, clean_area_name)))
   }
 
   # Create the faceted map
