@@ -11,8 +11,8 @@
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/CIJBoulange/health-disruption-mapping.git
-cd health-disruption-mapping
+git clone https://github.com/FASTR-Analytics/disruption-mapping.git
+cd disruption-mapping
 git lfs pull  # Download large GeoJSON files
 ```
 

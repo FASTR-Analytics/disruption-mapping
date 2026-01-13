@@ -1,10 +1,10 @@
 site_name: Health Service Disruption Mapping
 site_description: Interactive visualization of health service disruptions across administrative areas
 site_author: CIJ Boulange
-site_url: https://cijboulange.github.io/health-disruption-mapping/
+site_url: https://fastr-analytics.github.io/disruption-mapping/
 
-repo_name: CIJBoulange/health-disruption-mapping
-repo_url: https://github.com/CIJBoulange/health-disruption-mapping
+repo_name: FASTR-Analytics/disruption-mapping
+repo_url: https://github.com/FASTR-Analytics/disruption-mapping
 
 theme:
   name: material
