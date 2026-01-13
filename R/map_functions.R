@@ -423,8 +423,8 @@ save_map_png <- function(map_data, filename,
       segment.color = NA,
       box.padding = 0.1,
       point.padding = 0,
-      force = 0.5,
-      force_pull = 5,
+      force = 0.3,
+      force_pull = 10,
       max.overlaps = Inf,
       seed = 42
     )
@@ -607,8 +607,8 @@ create_faceted_map <- function(geo_data, disruption_data,
       segment.color = NA,
       box.padding = 0.1,
       point.padding = 0,
-      force = 0.5,
-      force_pull = 5,
+      force = 0.3,
+      force_pull = 10,
       max.overlaps = Inf,
       seed = 42
     ) +
