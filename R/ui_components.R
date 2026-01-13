@@ -584,6 +584,20 @@ create_about_tab <- function() {
     tabName = "about",
     fluidRow(
       box(
+        title = "Documentation",
+        status = "primary",
+        solidHeader = TRUE,
+        width = 12,
+        div(style = "text-align: center; padding: 20px;",
+            tags$a(href = "https://fastr-analytics.github.io/disruption-mapping/",
+                   target = "_blank",
+                   class = "btn btn-primary btn-lg",
+                   icon("book"), " View Full Documentation")
+        )
+      )
+    ),
+    fluidRow(
+      box(
         title = "About This Tool",
         status = "info",
         solidHeader = TRUE,
