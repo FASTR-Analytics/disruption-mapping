@@ -33,6 +33,7 @@ theme:
     - content.code.copy
     - header.autohide
   icon:
+    logo: material/map-marker-radius
     repo: fontawesome/brands/github
 
 extra_css:
