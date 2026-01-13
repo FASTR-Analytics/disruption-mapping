@@ -54,7 +54,7 @@ Side-by-side comparison of 2 indicators on the same map layout. Useful for ident
 
 Compares service utilization between the current year and the previous year. Shows whether services are recovering, stable, or declining compared to the same period last year.
 
-**Input**: M2 (Data Quality Adjustment) output from the [FASTR Analytics Platform](https://fastr-analytics.github.io/fastr-resource-hub/05_data_quality_adjustment/)
+**Input**: M2 (Data Quality Adjustment) output
 
 **Options**:
 
