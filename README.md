@@ -74,7 +74,7 @@ Full documentation: https://fastr-analytics.github.io/disruption-mapping/
 
 ## About
 
-Developed for FASTR (Fast-track Action for effective scale-up of priority maternal, newborn, and child health and nutrition interventions).
+Developed for FASTR.
 
 ## License
 
