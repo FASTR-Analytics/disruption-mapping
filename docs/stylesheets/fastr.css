@@ -1,0 +1,292 @@
+/* ========================================
+   FASTR MKDOCS THEME
+   ========================================
+   Official FASTR brand colors and styling
+   Based on FASTR brand guidelines
+*/
+
+:root {
+  /* Primary Colors */
+  --fastr-deep-green: #09544F;
+  --fastr-dark-green: #0C716B;
+  --fastr-green: #1F9A9C;
+  --fastr-lime: #D0CB17;
+  --fastr-navy: #21568C;
+  --fastr-blue: #1A90C0;
+  --fastr-light-blue: #CAE6E9;
+
+  /* Secondary Colors */
+  --fastr-gold: #D8A822;
+  --fastr-purple: #7A1F6E;
+  --fastr-orchid: #BD5091;
+  --fastr-coral: #FF6462;
+
+  /* Text & Background */
+  --text-dark: #2c3e50;
+  --text-medium: #7f8c8d;
+  --bg-light: #f8f9fa;
+  --border-light: #dee2e6;
+
+  /* MkDocs Material overrides */
+  --md-primary-fg-color: var(--fastr-deep-green);
+  --md-primary-fg-color--light: var(--fastr-green);
+  --md-primary-fg-color--dark: var(--fastr-deep-green);
+  --md-accent-fg-color: var(--fastr-lime);
+  --md-typeset-a-color: var(--fastr-blue);
+}
+
+/* Light mode */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--fastr-deep-green);
+  --md-primary-fg-color--light: var(--fastr-green);
+  --md-primary-fg-color--dark: var(--fastr-deep-green);
+  --md-accent-fg-color: var(--fastr-blue);
+  --md-typeset-a-color: var(--fastr-blue);
+}
+
+/* Dark mode */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--fastr-dark-green);
+  --md-accent-fg-color: var(--fastr-lime);
+  --md-typeset-a-color: var(--fastr-light-blue);
+}
+
+/* ========================================
+   HEADERS
+   ======================================== */
+.md-typeset h1 {
+  color: var(--fastr-deep-green);
+  font-weight: 700;
+  border-bottom: 3px solid var(--fastr-lime);
+  padding-bottom: 0.3em;
+}
+
+.md-typeset h2 {
+  color: var(--fastr-navy);
+  font-weight: 600;
+  border-bottom: 2px solid var(--fastr-blue);
+  padding-bottom: 0.2em;
+}
+
+.md-typeset h3 {
+  color: var(--fastr-purple);
+  font-weight: 600;
+  border-left: 4px solid var(--fastr-orchid);
+  padding-left: 0.5em;
+}
+
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* ========================================
+   NAVIGATION
+   ======================================== */
+.md-header {
+  background-color: var(--fastr-deep-green);
+}
+
+.md-tabs {
+  background-color: var(--fastr-dark-green);
+}
+
+.md-nav__link--active {
+  color: var(--fastr-blue) !important;
+  font-weight: 600;
+}
+
+/* ========================================
+   LINKS
+   ======================================== */
+.md-typeset a {
+  color: var(--fastr-blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom 0.2s ease;
+}
+
+.md-typeset a:hover {
+  color: var(--fastr-navy);
+  border-bottom: 1px solid var(--fastr-blue);
+}
+
+/* ========================================
+   CODE
+   ======================================== */
+.md-typeset code {
+  background: var(--bg-light);
+  color: var(--fastr-navy);
+  border-radius: 4px;
+}
+
+.md-typeset pre {
+  background: var(--bg-light);
+  border-left: 4px solid var(--fastr-navy);
+  border-radius: 0 6px 6px 0;
+}
+
+.highlight .filename {
+  background: var(--fastr-navy);
+  color: white;
+}
+
+/* ========================================
+   TABLES
+   ======================================== */
+.md-typeset table:not([class]) {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--fastr-light-blue);
+  color: var(--fastr-navy);
+  font-weight: 600;
+  border-bottom: 2px solid var(--fastr-blue);
+}
+
+.md-typeset table:not([class]) td {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.md-typeset table:not([class]) tr:hover td {
+  background: var(--bg-light);
+}
+
+/* ========================================
+   BLOCKQUOTES
+   ======================================== */
+.md-typeset blockquote {
+  border-left: 4px solid var(--fastr-gold);
+  background: rgba(216, 168, 34, 0.1);
+  padding: 0.5em 1em;
+  border-radius: 0 6px 6px 0;
+}
+
+/* ========================================
+   ADMONITIONS
+   ======================================== */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--fastr-blue);
+}
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary {
+  background-color: rgba(26, 144, 192, 0.1);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--fastr-green);
+}
+
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary {
+  background-color: rgba(31, 154, 156, 0.1);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-color: var(--fastr-gold);
+}
+
+.md-typeset .warning > .admonition-title,
+.md-typeset .warning > summary {
+  background-color: rgba(216, 168, 34, 0.1);
+}
+
+.md-typeset .admonition.danger,
+.md-typeset details.danger {
+  border-color: var(--fastr-coral);
+}
+
+.md-typeset .danger > .admonition-title,
+.md-typeset .danger > summary {
+  background-color: rgba(255, 100, 98, 0.1);
+}
+
+.md-typeset .admonition.info,
+.md-typeset details.info {
+  border-color: var(--fastr-navy);
+}
+
+.md-typeset .info > .admonition-title,
+.md-typeset .info > summary {
+  background-color: rgba(33, 86, 140, 0.1);
+}
+
+/* ========================================
+   LISTS
+   ======================================== */
+.md-typeset ul > li::marker {
+  color: var(--fastr-green);
+}
+
+.md-typeset ol > li::marker {
+  color: var(--fastr-blue);
+  font-weight: 600;
+}
+
+/* ========================================
+   EMPHASIS
+   ======================================== */
+.md-typeset strong {
+  color: var(--fastr-navy);
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.md-footer {
+  background-color: var(--fastr-deep-green);
+}
+
+.md-footer-meta {
+  background-color: var(--fastr-deep-green);
+}
+
+/* ========================================
+   SEARCH
+   ======================================== */
+.md-search__input {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ========================================
+   SIDEBAR
+   ======================================== */
+.md-sidebar__scrollwrap::-webkit-scrollbar-thumb {
+  background-color: var(--fastr-green);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+.md-typeset .md-button {
+  background-color: var(--fastr-deep-green);
+  border-color: var(--fastr-deep-green);
+  color: white;
+}
+
+.md-typeset .md-button:hover {
+  background-color: var(--fastr-dark-green);
+  border-color: var(--fastr-dark-green);
+}
+
+.md-typeset .md-button--primary {
+  background-color: var(--fastr-blue);
+  border-color: var(--fastr-blue);
+}
+
+.md-typeset .md-button--primary:hover {
+  background-color: var(--fastr-navy);
+  border-color: var(--fastr-navy);
+}

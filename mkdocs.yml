@@ -1,23 +1,26 @@
 site_name: Health Service Disruption Mapping
 site_description: Interactive visualization of health service disruptions across administrative areas
-site_author: CIJ Boulange
+site_author: FASTR Analytics
 site_url: https://fastr-analytics.github.io/disruption-mapping/
 
 repo_name: FASTR-Analytics/disruption-mapping
 repo_url: https://github.com/FASTR-Analytics/disruption-mapping
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2024-2026 FASTR Analytics
 
 theme:
   name: material
   palette:
     - scheme: default
-      primary: blue
-      accent: light blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: blue
-      accent: light blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -28,8 +31,12 @@ theme:
     - navigation.top
     - search.highlight
     - content.code.copy
+    - header.autohide
   icon:
     repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/fastr.css
 
 plugins:
   - search
@@ -68,4 +75,5 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/CIJBoulange
+      link: https://github.com/FASTR-Analytics
+      name: FASTR Analytics on GitHub
