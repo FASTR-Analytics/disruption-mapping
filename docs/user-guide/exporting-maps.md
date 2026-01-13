@@ -36,14 +36,6 @@ Exported maps include:
 - **North arrow**: Orientation indicator
 - **Caption**: Color interpretation guide
 
-## Tips for Reports
-
-!!! tip "Presentation Quality"
-    The 300 DPI resolution ensures maps are crisp when printed or displayed in presentations.
-
-!!! tip "Consistent Styling"
-    Maps use consistent styling across all exports for professional reports.
-
 ## Troubleshooting
 
 ### Download not starting
