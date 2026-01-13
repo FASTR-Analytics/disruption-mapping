@@ -2,24 +2,27 @@
 # MAP RENDERING FUNCTIONS
 # ========================================
 
-# Clean area names by stripping common prefixes and suffixes
+# Clean area names by stripping common prefixes and suffixes (vectorized)
 # e.g., "nu Nord Ubangi Province" -> "Nord Ubangi"
-clean_area_name <- function(name) {
-  if (is.null(name) || is.na(name)) return(name)
+clean_area_name <- function(names) {
+  # Handle NULL or empty input
+  if (is.null(names) || length(names) == 0) return(names)
 
   # Remove common suffixes (case insensitive)
-  suffixes <- c(" Province", " Region", " District", " State", " County", " Department")
-  for (suffix in suffixes) {
-    name <- gsub(paste0(suffix, "$"), "", name, ignore.case = TRUE)
-  }
+  names <- gsub(" Province$", "", names, ignore.case = TRUE)
+  names <- gsub(" Region$", "", names, ignore.case = TRUE)
+  names <- gsub(" District$", "", names, ignore.case = TRUE)
+  names <- gsub(" State$", "", names, ignore.case = TRUE)
+  names <- gsub(" County$", "", names, ignore.case = TRUE)
+  names <- gsub(" Department$", "", names, ignore.case = TRUE)
 
   # Remove 2-3 letter lowercase prefixes followed by space (e.g., "nu ", "su ", "hk ")
-  name <- gsub("^[a-z]{2,3} ", "", name)
+  names <- gsub("^[a-z]{2,3} ", "", names)
 
   # Trim whitespace
-  name <- trimws(name)
+  names <- trimws(names)
 
-  return(name)
+  return(names)
 }
 
 # Load GeoJSON boundaries
@@ -390,7 +393,7 @@ save_map_png <- function(map_data, filename,
       # Combined label: % on first line, cleaned name on second
       map_label = paste0(
         ifelse(!is.na(percent_change), paste0(round(percent_change, 0), "%"), "n/a"),
-        "\n", sapply(name, clean_area_name)
+        "\n", clean_area_name(name)
       )
     )
 
@@ -412,18 +415,16 @@ save_map_png <- function(map_data, filename,
         title.hjust = 0.5
       )
     ) +
-    # Add labels with repel (simple lines, no arrows)
+    # Add labels with repel (no segment lines)
     geom_text_repel(
       aes(x = x, y = y, label = map_label),
       size = 2.5,
       lineheight = 0.9,
-      segment.color = "grey60",
-      segment.size = 0.25,
-      min.segment.length = 0.2,
-      box.padding = 0.4,
-      point.padding = 0.3,
-      force = 6,
-      force_pull = 1,
+      segment.color = NA,
+      box.padding = 0.3,
+      point.padding = 0.2,
+      force = 4,
+      force_pull = 2,
       max.overlaps = Inf,
       max.iter = 5000,
       seed = 42
@@ -577,7 +578,7 @@ create_faceted_map <- function(geo_data, disruption_data,
   # Add area name to label if show_labels is TRUE (clean name for display)
   if (show_labels) {
     map_data_all <- map_data_all %>%
-      mutate(map_label = paste0(map_label, "\n", sapply(name, clean_area_name)))
+      mutate(map_label = paste0(map_label, "\n", clean_area_name(name)))
   }
 
   # Create the faceted map
@@ -599,18 +600,16 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Add labels with repel (simple lines, no arrows)
+    # Add labels with repel (no segment lines)
     geom_text_repel(
       aes(x = x, y = y, label = map_label),
       size = 2.0,
       lineheight = 0.9,
-      segment.color = "grey60",
-      segment.size = 0.25,
-      min.segment.length = 0.2,
-      box.padding = 0.3,
-      point.padding = 0.2,
-      force = 4,
-      force_pull = 1.2,
+      segment.color = NA,
+      box.padding = 0.2,
+      point.padding = 0.1,
+      force = 3,
+      force_pull = 2,
       max.overlaps = Inf,
       max.iter = 5000,
       seed = 42
