@@ -1,0 +1,71 @@
+site_name: Health Service Disruption Mapping
+site_description: Interactive visualization of health service disruptions across administrative areas
+site_author: CIJ Boulange
+site_url: https://cijboulange.github.io/health-disruption-mapping/
+
+repo_name: CIJBoulange/health-disruption-mapping
+repo_url: https://github.com/CIJBoulange/health-disruption-mapping
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - Getting Started: user-guide/getting-started.md
+    - Uploading Data: user-guide/uploading-data.md
+    - Creating Maps: user-guide/creating-maps.md
+    - Exporting Maps: user-guide/exporting-maps.md
+  - Technical Documentation:
+    - Architecture: technical/architecture.md
+    - Data Pipeline: technical/data-pipeline.md
+    - Deployment: technical/deployment.md
+    - Contributing: technical/contributing.md
+  - Reference:
+    - Data Format: reference/data-format.md
+    - Indicators: reference/indicators.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/CIJBoulange
