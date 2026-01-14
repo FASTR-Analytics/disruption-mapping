@@ -5,7 +5,7 @@ colorFrom: blue
 colorTo: green
 sdk: docker
 pinned: false
-license: apache-2.0
+license: other
 ---
 
 # Health Service Disruption Mapping
@@ -88,4 +88,6 @@ Developed for FASTR.
 
 ## License
 
-Apache 2.0
+Copyright (c) 2025 The World Bank, Global Financing Facility for Women, Children and Adolescents (GFF), Frequent Assessments and System Tools for Resilience (FASTR) Initiative. All rights reserved.
+
+This software is proprietary and made publicly available for transparency and reference purposes only. See [LICENSE](LICENSE) for full terms.
