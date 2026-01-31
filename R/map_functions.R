@@ -363,21 +363,20 @@ save_map_png <- function(map_data, filename,
   # Continuous gradient matching leaflet
   color_values <- c("#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641")
 
-  # Extract centroid coordinates for label positioning
+  # Extract centroid coordinates and calculate per-polygon nudge
   map_data <- map_data %>%
     mutate(
       centroid = st_centroid(geometry),
       x = st_coordinates(centroid)[, 1],
       y = st_coordinates(centroid)[, 2],
+      # Calculate nudge based on each polygon's height (5% of polygon height)
+      poly_bbox = lapply(geometry, st_bbox),
+      nudge = sapply(poly_bbox, function(bb) (bb["ymax"] - bb["ymin"]) * 0.05),
       # Separate labels for value and name
       value_label = ifelse(!is.na(percent_change), paste0(round(percent_change, 0), "%"), "n/a"),
       name_label = clean_area_name(name)
-    )
-
-  # Calculate dynamic nudge based on map extent (2% of latitude range)
-  bbox <- st_bbox(map_data)
-  lat_range <- bbox["ymax"] - bbox["ymin"]
-  dynamic_nudge <- lat_range * 0.02
+    ) %>%
+    select(-poly_bbox)
 
   # Create the map
   p <- ggplot(data = map_data) +
@@ -397,18 +396,16 @@ save_map_png <- function(map_data, filename,
         title.hjust = 0.5
       )
     ) +
-    # Value slightly above centroid
+    # Value slightly above centroid (per-polygon nudge)
     geom_text(
-      aes(x = x, y = y, label = value_label),
+      aes(x = x, y = y + nudge, label = value_label),
       size = 3.0,
-      fontface = "bold",
-      nudge_y = dynamic_nudge
+      fontface = "bold"
     ) +
-    # Name slightly below centroid
+    # Name slightly below centroid (per-polygon nudge)
     geom_text(
-      aes(x = x, y = y, label = name_label),
-      size = 2.5,
-      nudge_y = -dynamic_nudge
+      aes(x = x, y = y - nudge, label = name_label),
+      size = 2.5
     )
 
   # Add common elements
@@ -544,21 +541,20 @@ create_faceted_map <- function(geo_data, disruption_data,
   # Translate legend title
   legend_title <- if (lang == "fr") "% Changement" else "% Change"
 
-  # Extract centroid coordinates for label positioning
+  # Extract centroid coordinates and calculate per-polygon nudge
   map_data_all <- map_data_all %>%
     mutate(
       centroid = st_centroid(geometry),
       x = st_coordinates(centroid)[, 1],
       y = st_coordinates(centroid)[, 2],
+      # Calculate nudge based on each polygon's height (5% of polygon height)
+      poly_bbox = lapply(geometry, st_bbox),
+      nudge = sapply(poly_bbox, function(bb) (bb["ymax"] - bb["ymin"]) * 0.05),
       # Separate labels for value and name
       value_label = ifelse(!is.na(percent_change), paste0(round(percent_change, 0), "%"), "n/a"),
       name_label = clean_area_name(name)
-    )
-
-  # Calculate dynamic nudge based on map extent (2% of latitude range)
-  bbox <- st_bbox(map_data_all)
-  lat_range <- bbox["ymax"] - bbox["ymin"]
-  dynamic_nudge <- lat_range * 0.02
+    ) %>%
+    select(-poly_bbox)
 
   # Create the faceted map
   p <- ggplot(data = map_data_all) +
@@ -579,18 +575,16 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Value slightly above centroid
+    # Value slightly above centroid (per-polygon nudge)
     geom_text(
-      aes(x = x, y = y, label = value_label),
+      aes(x = x, y = y + nudge, label = value_label),
       size = 2.5,
-      fontface = "bold",
-      nudge_y = dynamic_nudge
+      fontface = "bold"
     ) +
-    # Name slightly below centroid (only if show_labels)
+    # Name slightly below centroid (only if show_labels, per-polygon nudge)
     {if (show_labels) geom_text(
-      aes(x = x, y = y, label = name_label),
-      size = 2.0,
-      nudge_y = -dynamic_nudge
+      aes(x = x, y = y - nudge, label = name_label),
+      size = 2.0
     ) else NULL} +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
