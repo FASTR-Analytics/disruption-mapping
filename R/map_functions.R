@@ -136,42 +136,31 @@ render_disruption_map <- function(map_data, show_labels = TRUE) {
     data_centroids$name <- map_data$name
     data_centroids$percent_change <- map_data$percent_change
 
-    # Add district name labels
+    # Create combined label: value on top, name below (single marker)
+    data_centroids$combined_label <- paste0(
+      "<div style='text-align:center;line-height:1.2;'>",
+      "<span style='font-size:11px;font-weight:bold;'>",
+      ifelse(data_centroids$percent_change > 0, "+", ""),
+      round(data_centroids$percent_change, 1), "%</span><br/>",
+      "<span style='font-size:9px;font-weight:600;color:#333;'>",
+      data_centroids$name, "</span></div>"
+    )
+
+    # Add combined labels (value + name together)
     map <- map %>%
       addLabelOnlyMarkers(
         data = data_centroids,
         lng = ~X,
         lat = ~Y,
-        label = ~name,
+        label = ~lapply(combined_label, htmltools::HTML),
         labelOptions = labelOptions(
           noHide = TRUE,
           direction = "center",
           textOnly = TRUE,
           style = list(
-            "color" = "#333",
-            "font-family" = "Arial, sans-serif",
-            "font-size" = "10px",
-            "font-weight" = "600",
+            "background" = "transparent",
+            "border" = "none",
             "text-shadow" = "1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white, 0px 0px 3px white"
-          )
-        )
-      ) %>%
-      # Add percent change values below district names
-      addLabelOnlyMarkers(
-        data = data_centroids %>% mutate(Y = Y - 0.08),  # Nudge down slightly
-        lng = ~X,
-        lat = ~Y,
-        label = ~paste0(ifelse(percent_change > 0, "+", ""), round(percent_change, 1), "%"),
-        labelOptions = labelOptions(
-          noHide = TRUE,
-          direction = "center",
-          textOnly = TRUE,
-          style = list(
-            "color" = "black",
-            "font-family" = "Arial, sans-serif",
-            "font-size" = "11px",
-            "font-weight" = "bold",
-            "text-shadow" = "1px 1px 3px white, -1px -1px 3px white, 1px -1px 3px white, -1px 1px 3px white, 0px 0px 4px white"
           )
         )
       )
@@ -296,40 +285,30 @@ render_yoy_map <- function(map_data, current_label, previous_label, show_labels 
     data_centroids$name <- map_data$name
     data_centroids$label_value <- percent_display
 
+    # Create combined label: value on top, name below (single marker)
+    data_centroids$combined_label <- paste0(
+      "<div style='text-align:center;line-height:1.2;'>",
+      "<span style='font-size:11px;font-weight:bold;'>",
+      data_centroids$label_value, "</span><br/>",
+      "<span style='font-size:9px;font-weight:600;color:#333;'>",
+      data_centroids$name, "</span></div>"
+    )
+
+    # Add combined labels (value + name together)
     map <- map %>%
       addLabelOnlyMarkers(
         data = data_centroids,
         lng = ~X,
         lat = ~Y,
-        label = ~name,
+        label = ~lapply(combined_label, htmltools::HTML),
         labelOptions = labelOptions(
           noHide = TRUE,
           direction = "center",
           textOnly = TRUE,
           style = list(
-            "color" = "#333",
-            "font-family" = "Arial, sans-serif",
-            "font-size" = "10px",
-            "font-weight" = "600",
+            "background" = "transparent",
+            "border" = "none",
             "text-shadow" = "1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white, 0px 0px 3px white"
-          )
-        )
-      ) %>%
-      addLabelOnlyMarkers(
-        data = data_centroids %>% mutate(Y = Y - 0.08),
-        lng = ~X,
-        lat = ~Y,
-        label = ~label_value,
-        labelOptions = labelOptions(
-          noHide = TRUE,
-          direction = "center",
-          textOnly = TRUE,
-          style = list(
-            "color" = "black",
-            "font-family" = "Arial, sans-serif",
-            "font-size" = "11px",
-            "font-weight" = "bold",
-            "text-shadow" = "1px 1px 3px white, -1px -1px 3px white, 1px -1px 3px white, -1px 1px 3px white, 0px 0px 4px white"
           )
         )
       )
@@ -395,6 +374,11 @@ save_map_png <- function(map_data, filename,
       name_label = clean_area_name(name)
     )
 
+  # Calculate dynamic nudge based on map extent (2% of latitude range)
+  bbox <- st_bbox(map_data)
+  lat_range <- bbox["ymax"] - bbox["ymin"]
+  dynamic_nudge <- lat_range * 0.02
+
   # Create the map
   p <- ggplot(data = map_data) +
     geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
@@ -413,17 +397,18 @@ save_map_png <- function(map_data, filename,
         title.hjust = 0.5
       )
     ) +
-    # Value exactly on centroid
+    # Value slightly above centroid
     geom_text(
       aes(x = x, y = y, label = value_label),
       size = 3.0,
-      fontface = "bold"
+      fontface = "bold",
+      nudge_y = dynamic_nudge
     ) +
-    # Name below centroid
+    # Name slightly below centroid
     geom_text(
       aes(x = x, y = y, label = name_label),
       size = 2.5,
-      nudge_y = -0.4
+      nudge_y = -dynamic_nudge
     )
 
   # Add common elements
@@ -570,6 +555,11 @@ create_faceted_map <- function(geo_data, disruption_data,
       name_label = clean_area_name(name)
     )
 
+  # Calculate dynamic nudge based on map extent (2% of latitude range)
+  bbox <- st_bbox(map_data_all)
+  lat_range <- bbox["ymax"] - bbox["ymin"]
+  dynamic_nudge <- lat_range * 0.02
+
   # Create the faceted map
   p <- ggplot(data = map_data_all) +
     geom_sf(aes(fill = pmin(pmax(percent_change, -50), 50)),
@@ -589,17 +579,18 @@ create_faceted_map <- function(geo_data, disruption_data,
       ),
       na.value = "#999999"
     ) +
-    # Value exactly on centroid
+    # Value slightly above centroid
     geom_text(
       aes(x = x, y = y, label = value_label),
       size = 2.5,
-      fontface = "bold"
+      fontface = "bold",
+      nudge_y = dynamic_nudge
     ) +
-    # Name below centroid (only if show_labels)
+    # Name slightly below centroid (only if show_labels)
     {if (show_labels) geom_text(
       aes(x = x, y = y, label = name_label),
       size = 2.0,
-      nudge_y = -0.35
+      nudge_y = -dynamic_nudge
     ) else NULL} +
     # Facet by indicator with dynamic columns
     facet_wrap(~indicator_display, ncol = ncols) +
