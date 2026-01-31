@@ -8,6 +8,7 @@ get_available_countries <- function() {
   available_codes <- gsub("_backbone.geojson", "", geojson_files)
 
   allowlist <- c(
+    burkinafaso = "Burkina Faso",
     cameroon = "Cameroon",
     drc = "Democratic Republic of the Congo",
     ethiopia = "Ethiopia",
